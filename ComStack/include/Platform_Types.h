@@ -1,10 +1,10 @@
 /*  BEGIN_FILE_HDR
 ********************************************************************************
 *   File Name       : Platform_Types.h
-*   Title           : platform related data types head File
+*   Title           : hardware platform related information head File
 ********************************************************************************
-*   Description     : The header file Platform_Types.h contains the definitions
-*                     of data types related specific hradware platform.
+*   Description     : The header file Platform_Types.h contains the information
+*                     of specific hradware platform.
 ********************************************************************************
 * END_FILE_HDR*/
 
@@ -15,7 +15,6 @@
 /*******************************************************************************
 *   Includes
 *******************************************************************************/
-#include "Compiler.h"
 
 /*******************************************************************************
 *   Macro
@@ -36,15 +35,6 @@
 #define CPU_BIT_ORDER       LSB_FIRST
 #define CPU_BYTE_ORDER      LOW_BYTE_FIRST
 
-#define STD_HIGH     (1)
-#define STD_LOW      (0)
-
-#define STD_ACTIVE   (1)
-#define STD_IDLE     (0)
-
-#define STD_ON       (1)
-#define STD_OFF      (0)
-
 /* This typedef has been added or OSEK compliance */
 #ifndef STATUSTYPEDEFINED
     #define STATUSTYPEDEFINED
@@ -54,34 +44,5 @@
 #endif
 
 #define E_NOT_OK  (1)
-/*******************************************************************************
-*   Typedef
-*******************************************************************************/
-typedef unsigned char       boolean;
-
-typedef unsigned char         u8;
-typedef unsigned char      uint8;
-typedef unsigned short       u16;
-typedef unsigned short    uint16;
-typedef unsigned long        u32;
-typedef unsigned long     uint32;
-typedef   signed char        si8;
-typedef   signed char      sint8;
-typedef   signed short      si16;
-typedef   signed short    sint16;
-typedef   signed long       si32;
-typedef   signed long     sint32;
-
-typedef uint8 Std_ReturnType;
-
-typedef struct
-{
-    uint16 vendorID;
-    uint16 moduleID;
-    uint8  instanceID;
-    uint8  sw_major_version;
-    uint8  sw_minor_version;
-    uint8  sw_patch_version;
-}Std_VersionInfo_Type;
 
 #endif  /* _PLATFORM_TYPES_H_ */

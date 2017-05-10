@@ -133,11 +133,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4101</DriverSelection>
+            <DriverSelection>4099</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -551,9 +551,68 @@
         </Group>
         <Group>
           <GroupName>CanDriver</GroupName>
+          <Files>
+            <File>
+              <FileName>Can.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ComStack\CAN_Driver\Can.c</FilePath>
+            </File>
+            <File>
+              <FileName>Can.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Driver\Can.h</FilePath>
+            </File>
+            <File>
+              <FileName>Can_Cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Driver\Can_Cfg.h</FilePath>
+            </File>
+            <File>
+              <FileName>Can_GeneralTypes.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Driver\Can_GeneralTypes.h</FilePath>
+            </File>
+            <File>
+              <FileName>Can_Irq.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ComStack\CAN_Driver\Can_Irq.c</FilePath>
+            </File>
+            <File>
+              <FileName>Can_PBcfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ComStack\CAN_Driver\Can_PBcfg.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>CanInterface</GroupName>
+          <Files>
+            <File>
+              <FileName>CanIf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ComStack\CAN_Interface\CanIf.c</FilePath>
+            </File>
+            <File>
+              <FileName>CanIf.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Interface\CanIf.h</FilePath>
+            </File>
+            <File>
+              <FileName>CanIf_Cbk.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Interface\CanIf_Cbk.h</FilePath>
+            </File>
+            <File>
+              <FileName>CanIf_Cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Interface\CanIf_Cfg.h</FilePath>
+            </File>
+            <File>
+              <FileName>CanIf_Type.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\CAN_Interface\CanIf_Type.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>CanTp</GroupName>
@@ -572,6 +631,61 @@
         </Group>
         <Group>
           <GroupName>PDUR</GroupName>
+        </Group>
+        <Group>
+          <GroupName>include</GroupName>
+          <Files>
+            <File>
+              <FileName>Compiler.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Compiler.h</FilePath>
+            </File>
+            <File>
+              <FileName>Compiler_Cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Compiler_Cfg.h</FilePath>
+            </File>
+            <File>
+              <FileName>Error.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\ComStack\include\Error.c</FilePath>
+            </File>
+            <File>
+              <FileName>Error.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Error.h</FilePath>
+            </File>
+            <File>
+              <FileName>Platform_Types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Platform_Types.h</FilePath>
+            </File>
+            <File>
+              <FileName>ComStack_Types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\ComStack_Types.h</FilePath>
+            </File>
+            <File>
+              <FileName>Dem.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Dem.h</FilePath>
+            </File>
+            <File>
+              <FileName>Det.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Det.h</FilePath>
+            </File>
+            <File>
+              <FileName>MemMap.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\MemMap.h</FilePath>
+            </File>
+            <File>
+              <FileName>Std_Types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\ComStack\include\Std_Types.h</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

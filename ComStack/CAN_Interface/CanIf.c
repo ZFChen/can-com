@@ -2,6 +2,8 @@
 ********************************************************************************
 *   File Name       : CanIf.c
 *   Title           : CAN Interface module Source file
+*   Reference       : AUTOSAR\Release 4.0\Software Architecture\
+*                     CommunicationStack\Standard Specifications
 ********************************************************************************
 *   Description     : The CAN Interface module managements different CAN
 *                     Controller and provide the unified access interface to
@@ -1353,6 +1355,7 @@ FUNC(void, CANIF_PUBLIC_CODE) CanIf_TxConfirmation
         {
             if(NULL_PTR != CanIfTxPduConfig[CanTxPduId].TxConfirmation)
             {
+                /* 通知上层模块(COM/CANTP) */
                 #if (STD_ON == CANIF_UPPER_LAYER_HANDLE)
                 (CanIfTxPduConfig[CanTxPduId].TxConfirmation)
                                 (CanIfTxPduConfig[CanTxPduId].UpperLayerHandle);

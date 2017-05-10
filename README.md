@@ -1,19 +1,20 @@
 # can-com
 can communication
 
-###framework
+### framework
 can conmunication framework(refer to AutoSAR4.0 specification of communication)
 
-![can conmunication framework](https://github.com/ZFChen/can-com/blob/master/AutoSAR_Com_Protocol_framework.jpg)
+<!-- ![can conmunication framework](https://github.com/ZFChen/can-com/blob/master/AutoSAR_Com_Protocol_framework.jpg) -->
 
-###file structure
+### file structure
 CAN Driver
 
 	|--Can.h
 	|--Can.c
 	|--Can_Cfg.h
-	|--Can_Type.h
-
+	|--Can_Pl.h
+	|--Can_GeneralTypes.h
+	|--Can_PBcfg.h
 CAN Interface
 
 	|--CanIf.h

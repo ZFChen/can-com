@@ -29,7 +29,6 @@
 #define CAN_APPL_DATA                  /* Applications' RAM Data              */
 #define CAN_FAST_DATA                  /* 'Near' RAM Data                     */
 
-
 #define CAN_CONFIG_CONST               /* Desc. Tables -> Config-dependent    */
 #define CAN_CONFIG_DATA                /* Config. dependent (reg. size) data  */
 
