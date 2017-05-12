@@ -49,11 +49,31 @@ typedef volatile struct
 	volatile uint32    CAN_BTR	;
 } Can_ProRegType;                               
 
+/*------------------------ Controller Area Network ---------------------------*/
+#define   CAN_FILTER_MAX_NUMBER     0x0E
+
 typedef volatile struct
 {
   volatile uint32 FR1;
   volatile uint32 FR2;
 } CAN_FilterRegister_TypeDef;
+
+typedef volatile struct
+{
+  volatile CAN_FilterRegister_TypeDef FR[CAN_FILTER_MAX_NUMBER];
+} CAN_FilterBankRegister_TypeDef;
+
+typedef volatile struct
+{
+  volatile uint32 FMR;
+  volatile uint32 FM1R;
+  volatile uint32 Reserved_0;
+  volatile uint32 FS1R;
+  volatile uint32 Reserved_1;
+  volatile uint32 FFA1R;
+  volatile uint32 Reserved_2;
+  volatile uint32 FA1R;
+} CAN_FilterConfigRegister_TypeDef;
 
 typedef volatile struct
 {
@@ -87,9 +107,6 @@ typedef struct
 {
     uint32       oldCanMCR; 
 } Can_OldIERType;
-
-
-/*------------------------ Controller Area Network ---------------------------*/
 
 typedef struct
 {
@@ -133,136 +150,117 @@ typedef struct
 #define CAN_BASE              (APB1PERIPH_BASE + 0x6400)
 #define BKP_BASE              (APB1PERIPH_BASE + 0x6C00)
 
-#define CAN_CONTROLLER_ProReg_ADR(controllerID)     ((Can_ProRegType *)(CanBasisAddress[controllerID]))
-#define CAN_CONTROLLER_IF1Reg_ADR(controllerID)     ((Can_IF1RegType *)(CanBasisAddress[controllerID]+0x180))
-#define CAN_CONTROLLER_IF2Reg_ADR(controllerID)     ((Can_IF2RegType *)(CanBasisAddress[controllerID]+0x190))
+#define CAN_CONTROLLER_ProReg_ADR(controllerID)                    ((Can_ProRegType *)(CanBasisAddress[controllerID]))
+#define CAN_CONTROLLER_TxMailBox0Reg_ADR(controllerID)             ((CAN_TxMailBox_TypeDef *)(CanBasisAddress[controllerID]+0x180))
+#define CAN_CONTROLLER_TxMailBox1Reg_ADR(controllerID)             ((CAN_TxMailBox_TypeDef *)(CanBasisAddress[controllerID]+0x190))
+#define CAN_CONTROLLER_TxMailBox2Reg_ADR(controllerID)             ((CAN_TxMailBox_TypeDef *)(CanBasisAddress[controllerID]+0x1A0))
 
-#define COER(controllerID)                          (*(uint16 * )(CanBasisAddress[controllerID]+0xCE))
+#define CAN_CONTROLLER_RxFIFOMailBox0Reg_ADR(controllerID)         ((CAN_FIFOMailBox_TypeDef *)(CanBasisAddress[controllerID]+0x1B0))
+#define CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)         ((CAN_FIFOMailBox_TypeDef *)(CanBasisAddress[controllerID]+0x1C0))
 
+#define CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)           ((CAN_FilterConfigRegister_TypeDef *)(CanBasisAddress[controllerID]+0x200))
+#define CAN_CONTROLLER_FilterBankReg_ADR(controllerID)             ((CAN_FilterBankRegister_TypeDef *)(CanBasisAddress[controllerID]+0x240))
+
+/******************************* CAN Control and Status register ********************************************/
 #define MCR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_MCR)
 #define MSR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_MSR)
 #define TSR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_TSR) 
 #define RF0R(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF0R)
-#define RF1F(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF1F)  
+#define RF1F(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF1F)
 #define IER(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_IER)
-#define ESR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_ESR)                                                                                                          
+#define ESR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_ESR)
 #define BTR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_BTR)  
 
-#define IF1CREQ(controllerID)                       (CAN_CONTROLLER_IF1Reg_ADR(controllerID)->IF1CREQ) 
-#define IF1CMSK(controllerID)                       (CAN_CONTROLLER_IF1Reg_ADR(controllerID)->IF1CMSK) 
-#define IF1MSK(controllerID)                        (CAN_CONTROLLER_IF1Reg_ADR(controllerID)->IF1MSK) 
-#define IF1ARB(controllerID)                        (CAN_CONTROLLER_IF1Reg_ADR(controllerID)->IF1ARB) 
-#define IF1MCTR(controllerID)                       (CAN_CONTROLLER_IF1Reg_ADR(controllerID)->IF1MCTR) 
-                                                                                                     
-#define IF2CREQ(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2CREQ) 
-#define IF2CMSK(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2CMSK) 
-#define IF2MSK(controllerID)                        (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2MSK) 
-#define IF2ARB(controllerID)                        (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2ARB) 
-#define IF2MCTR(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2MCTR) 
-#define IF2DTA1(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2DTA1) 
-#define IF2DTA2(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2DTA2) 
-#define IF2DTB1(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2DTB1) 
-#define IF2DTB2(controllerID)                       (CAN_CONTROLLER_IF2Reg_ADR(controllerID)->IF2DTB2) 
-                                                                                                       
-#define TREQR(controllerID)                         (*(uint32 * )(CanBasisAddress[controllerID] + 0x00000080))         
-#define NEWDT(controllerID)                         (*(uint32 * )(CanBasisAddress[controllerID] + 0x00000090))       
-#define INTPND(controllerID)                        (*(uint32 * )(CanBasisAddress[controllerID] + 0x000000A0))      
-#define MSGVAL(controllerID)                        (*(uint32 * )(CanBasisAddress[controllerID] + 0x000000B0))  
+/******************************* CAN Filter register ********************************************/
+#define CAN_FMR(controllerID)              (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FMR)
+#define CAN_FM1R(controllerID)             (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FM1R)
+#define CAN_FS1R(controllerID)             (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FS1R)
+#define CAN_FFA1R(controllerID)            (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FFA1R)
+#define CAN_FA1R(controllerID)             (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FA1R)
 
-/* Bitmask of COER: */                                                  
-#define COER_OE                                     ((uint16)0x0001)
+#define CAN_F0R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[0]->FR1)
+#define CAN_F0R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[0]->FR2)
+#define CAN_F1R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[1]->FR1)
+#define CAN_F1R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[1]->FR2)
+#define CAN_F2R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[2]->FR1)
+#define CAN_F2R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[2]->FR2)
+#define CAN_F3R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[3]->FR1)
+#define CAN_F3R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[3]->FR2)
+#define CAN_F4R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[4]->FR1)
+#define CAN_F4R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[4]->FR2)
+#define CAN_F5R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[5]->FR1)
+#define CAN_F5R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[5]->FR2)
+#define CAN_F6R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[6]->FR1)
+#define CAN_F6R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[6]->FR2)
+#define CAN_F7R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[7]->FR1)
+#define CAN_F7R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[7]->FR2)
+#define CAN_F8R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[8]->FR1)
+#define CAN_F8R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[8]->FR2)
+#define CAN_F9R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[9]->FR1)
+#define CAN_F9R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[9]->FR2)
+#define CAN_F10R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[10]->FR1)
+#define CAN_F10R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[10]->FR2)
+#define CAN_F11R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[11]->FR1)
+#define CAN_F11R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[11]->FR2)
+#define CAN_F12R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[12]->FR1)
+#define CAN_F12R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[12]->FR2)
+#define CAN_F13R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[13]->FR1)
+#define CAN_F13R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[13]->FR2)
+#define CAN_F14R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[14]->FR1)
+#define CAN_F14R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[14]->FR2)
 
-/* Bitmask of CTRLR: */
-#define CTRLR_INIT                                  ((uint16)0x0001)   /*   */ 
-#define CTRLR_IE                                    ((uint16)0x0002)   /*   */ 
-#define CTRLR_SIE                                   ((uint16)0x0004)   /*   */ 
-#define CTRLR_EIE                                   ((uint16)0x0008)   /*   */ 
-#define CTRLR_DAR                                   ((uint16)0x0020)   /*   */ 
-#define CTRLR_CCE                                   ((uint16)0x0040)   /*   */ 
-#define CTRLR_TEST                                  ((uint16)0x0080)   /*   */ 
+/******************************* CAN transmit mailbox register ********************************************/
+#define TI0R(controllerID)                       (CAN_CONTROLLER_TxMailBox0Reg_ADR(controllerID)->TIR)
+#define TDT0R(controllerID)                      (CAN_CONTROLLER_TxMailBox0Reg_ADR(controllerID)->TDTR)
+#define TDL0R(controllerID)                      (CAN_CONTROLLER_TxMailBox0Reg_ADR(controllerID)->TDLR)
+#define TDH0R(controllerID)                      (CAN_CONTROLLER_TxMailBox0Reg_ADR(controllerID)->TDHR)
 
-#define CTRLR_INTERUPT                              ((uint16)0x000E) 
+#define TI1R(controllerID)                       (CAN_CONTROLLER_TxMailBox1Reg_ADR(controllerID)->TIR)
+#define TDT1R(controllerID)                      (CAN_CONTROLLER_TxMailBox1Reg_ADR(controllerID)->TDTR)
+#define TDL1R(controllerID)                      (CAN_CONTROLLER_TxMailBox1Reg_ADR(controllerID)->TDLR)
+#define TDH1R(controllerID)                      (CAN_CONTROLLER_TxMailBox1Reg_ADR(controllerID)->TDHR)
+
+#define TI2R(controllerID)                       (CAN_CONTROLLER_TxMailBox2Reg_ADR(controllerID)->TIR)
+#define TDT2R(controllerID)                      (CAN_CONTROLLER_TxMailBox2Reg_ADR(controllerID)->TDTR)
+#define TDL2R(controllerID)                      (CAN_CONTROLLER_TxMailBox2Reg_ADR(controllerID)->TDLR)
+#define TDH2R(controllerID)                      (CAN_CONTROLLER_TxMailBox2Reg_ADR(controllerID)->TDHR)
+
+/******************************* CAN receive FIFO mailbox register ********************************************/
+#define RI0R(controllerID)                       (CAN_CONTROLLER_RxFIFOMailBox0Reg_ADR(controllerID)->RIR)
+#define RDT0R(controllerID)                      (CAN_CONTROLLER_RxFIFOMailBox0Reg_ADR(controllerID)->RDTR)
+#define RL0R(controllerID)                       (CAN_CONTROLLER_RxFIFOMailBox0Reg_ADR(controllerID)->RDLR)
+#define RDH0R(controllerID)                      (CAN_CONTROLLER_RxFIFOMailBox0Reg_ADR(controllerID)->RDHR)
+
+#define RI1R(controllerID)                       (CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)->RIR)
+#define RDT1R(controllerID)                      (CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)->RDTR)
+#define RL1R(controllerID)                       (CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)->RDLR)
+#define RDH1R(controllerID)                      (CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)->RDHR)
+
+
+/* Bitmask of MCR: */
+#define MCR_INRQ                                   ((uint32)0x00000001)   /* Initialization request  */ 
+#define MCR_SLEEP                                  ((uint32)0x00000002)   /* Sleep mode request  */ 
+#define MCR_TXFP                                   ((uint32)0x00000004)   /* Transmit FIFO priority */ 
+#define MCR_RFLM                                   ((uint32)0x00000008)   /*  Receive FIFO locked mode  */ 
+#define MCR_NART                                   ((uint32)0x00000010)   /*  No automatic retransmission */ 
+#define MCR_AWUM                                   ((uint32)0x00000020)   /*  Automatic wakeup mode */ 
+#define MCR_ABOM                                   ((uint32)0x00000040)   /*  Automatic bus-off management */ 
+#define MCR_TTCM                                   ((uint32)0x00000080)   /*  Time triggered communication mode */ 
+#define MCR_RESET                                  ((uint32)0x00008000)   /*  bxCAN software master reset */ 
+#define MCR_DBF                                    ((uint32)0x00010000)   /*  Debug freeze  */ 
+
     
-/* Bitmask of STATR: */
-#define STATR_LEC0                                  ((uint16)0x0001)     /*   */  
-#define STATR_LEC1                                  ((uint16)0x0002)     /*   */  
-#define STATR_LEC2                                  ((uint16)0x0004)     /*   */  
-#define STATR_TXOK                                  ((uint16)0x0008)     /*   */  
-#define STATR_RXOK                                  ((uint16)0x0010)     /*   */  
-#define STATR_EPASS                                 ((uint16)0x0020)     /*   */  
-#define STATR_EWARN                                 ((uint16)0x0040)     /*   */  
-#define STATR_BOFF                                  ((uint16)0x0080)     /*   */  
+/* Bitmask of MSR: */
+#define MSR_INAK                                  ((uint32)0x00000001)     /* Initialization acknowledge */  
+#define MSR_SLAK                                  ((uint32)0x00000002)     /* Sleep acknowledge  */  
+#define MSR_ERRI                                  ((uint32)0x00000004)     /* Error interrupt */  
+#define MSR_WKUI                                  ((uint32)0x00000008)     /* Wakeup interrupt */  
+#define MSR_SLAKI                                 ((uint32)0x00000010)     /* Sleep acknowledge interrupt */  
+#define MSR_TXM                                   ((uint32)0x00000100)     /* Transmit mode */  
+#define MSR_RXM                                   ((uint32)0x00000200)     /* Receive mode */  
+#define MSR_SAMP                                  ((uint32)0x00000400)     /* Last sample point */  
+#define MSR_RX                                    ((uint32)0x00000800)     /* CAN Rx signal */  
 
-
-/* Bitmask of    ERRCNT    */
-#define ERRCNT_TEC_MASK                             ((uint16)0x00FF)     /*   */  
-#define ERRCNT_REC_MASK                             ((uint16)0x7F00)     /*   */  
-#define ERRCNT_RP                                   ((uint16)0x8000)     /*   */  
-
-/* Bitmask of    BTR        */                                                         
-#define BTR_BRP_MASK                                ((uint16)0x003F)     /*   */  
-#define BTR_SJW_MASK                                ((uint16)0x00C0)     /*   */  
-#define BTR_TSEG1_MASK                              ((uint16)0x0F00)     /*   */  
-#define BTR_TSEG2_MASK                              ((uint16)0x7000)     /*   */  
-
-
-
-/* Bitmask of TESTR: */
-#define TESTR_BASIC                                 ((uint16)0x0004)   /*   */ 
-#define TESTR_SILENT                                ((uint16)0x0008)   /*   */ 
-#define TESTR_LBACK                                 ((uint16)0x0010)   /*   */ 
-#define TESTR_TX0                                   ((uint16)0x0020)   /*   */ 
-#define TESTR_TX1                                   ((uint16)0x0040)   /*   */ 
-#define TESTR_RX                                    ((uint16)0x0080)   /*   */ 
-
-/* Bitmask of    BRPER      */
-#define BRPER_BRPE_MASK                             ((uint16)0x000F)   /*   */
-
-/* Bitmask of    IFx CREQ    */ 
-#define IFxCREQ_MSGN_MASK                           ((uint16)0x00FF)   /*   */         
-#define IFxCREQ_BUSY                                ((uint16)0x8000)   /*   */         
-                                                              
-/* Bitmask of    IFx CMSK    */                                                             
-#define IFxCMSK_DATAB                               ((uint16)0x0001)   /*   */           
-#define IFxCMSK_DATAA                               ((uint16)0x0002)   /*   */           
-#define IFxCMSK_TXREQ                               ((uint16)0x0004)   /*   */           
-#define IFxCMSK_CIP                                 ((uint16)0x0008)   /*   */           
-#define IFxCMSK_CONTROL                             ((uint16)0x0010)   /*   */           
-#define IFxCMSK_ARB                                 ((uint16)0x0020)   /*   */           
-#define IFxCMSK_MASK                                ((uint16)0x0040)   /*   */           
-#define IFxCMSK_WRRD                                ((uint16)0x0080)   /*   */           
-
-                                                              
-/* Bitmask of    IFx MSK    */                                                              
-#define IFxMSK_MSK_MASK                             ((uint32)0x1FFFFFFF)   /*   */     
- 
-#define IFxMSK_MDIR                                 ((uint32)0x40000000)   /*   */     
-#define IFxMSK_MXTD                                 ((uint32)0x80000000)   /*   */     
-                                                              
-/* Bitmask of    IFx ARB    */                                                              
-#define IFxARB_ID_MASK                              ((uint32)0x1FFFFFFF)   /*   */      
-#define IFxARB_DIR                                  ((uint32)0x20000000)   /*   */      
-#define IFxARB_XTD                                  ((uint32)0x40000000)   /*   */      
-#define IFxARB_MSGVAL                               ((uint32)0x80000000) /*   */      
-                                                              
-/* Bitmask of    IFx MCTR    */                                                              
-#define IFxMCTR_DLC                                 ((uint16)0x000F)   /*   */          
-#define IFxMCTR_EOB                                 ((uint16)0x0080)   /*   */          
-#define IFxMCTR_TXRQST                              ((uint16)0x0100)   /*   */          
-#define IFxMCTR_RMTEN                               ((uint16)0x0200)   /*   */          
-#define IFxMCTR_RXIE                                ((uint16)0x0400)   /*   */          
-#define IFxMCTR_TXIE                                ((uint16)0x0800)   /*   */          
-#define IFxMCTR_UMASK                               ((uint16)0x1000)   /*   */          
-#define IFxMCTR_INTPND                              ((uint16)0x2000)   /*   */          
-#define IFxMCTR_MSGLST                              ((uint16)0x4000)   /*   */          
-#define IFxMCTR_NEWDAT                              ((uint16)0x8000)   /*   */          
-
-#define Tx_IF1CMSK   IFxCMSK_WRRD | IFxCMSK_MASK | IFxCMSK_ARB | IFxCMSK_CONTROL
-#define Tx_IF1MCTR   IFxMCTR_TXIE | IFxMCTR_EOB 
-
-
-#define Rx_IF2CMSK   IFxCMSK_WRRD | IFxCMSK_MASK | IFxCMSK_ARB | IFxCMSK_CONTROL
-#define Rx_IF2MCTR   IFxMCTR_UMASK | IFxMCTR_RXIE | IFxMCTR_EOB 
 
 
 /*******************************************************************/
@@ -334,18 +332,20 @@ typedef struct
     #error "!!!ERROR FOR CAN0_BUSCLK_CFG!!!"
   #endif
   
-  /* Disable SIE */      
-   #define CAN0_CTRLR_INIT_VALUE    ((CAN0_CTRLR_IE_CFG)|(CAN0_CTRLR_EIE_CFG)|(CTRLR_INIT))     
-   #define CAN0_IF1CMSK_TX_VALUE     0x00F7
-   #define CAN0_IF1MCTR_TX_VALUE_PIX (IFxMCTR_UMASK) | (CAN0_IF1MCTR_TxIE_CFG) |(IFxMCTR_EOB)
   
-   #define CAN0_IF2CMSK_INIT_VALUE  0x00F0
-   #define CAN0_IF2MCTR_INIT_VALUE  ((IFxMCTR_UMASK)|(CAN0_IF2MCTR_RxIE_CFG )|(IFxMCTR_EOB))
+    /* CAN Controller initialization value */
+    #define CAN0_MCR_INIT_VALUE	     ((CAN0_CTRLR_IE_CFG)|(CAN0_CTRLR_EIE_CFG)|(CTRLR_INIT)) 	
+    #define CAN0_IER_INIT_VALUE	     0x00F7
+    #define CAN0_BTR_INIT_VALUE	 
+    
+    #define CAN0_FMR_INIT_VALUE      0x00F0
+    #define CAN0_FM1R_INIT_VALUE	
+    #define CAN0_FS1R_INIT_VALUE	
+    #define CAN0_FFA1R_INIT_VALUE	 
+    #define CAN0_FA1R_INIT_VALUE 
+
 #endif
 
-/*Interrupt Vector Number & Interrupt Functions
- __interrupt void CAN_0_int(void);
-#pragma    intvect    CAN_0_int                  33      */
 
 /*HOH related macros*/
 #define CAN_CONCTROLLER_MB_NUM             (32U)
