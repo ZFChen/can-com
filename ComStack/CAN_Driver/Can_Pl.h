@@ -50,7 +50,12 @@ typedef volatile struct
 } Can_ProRegType;                               
 
 /*------------------------ Controller Area Network ---------------------------*/
-#define   CAN_FILTER_MAX_NUMBER     0x0E
+
+#ifndef STM32F10X_CL
+  #define CAN_FILTER_MAX_NUMBER    14
+#else
+  #define CAN_FILTER_MAX_NUMBER    28
+#endif /* STM32F10X_CL */ 
 
 typedef volatile struct
 {
@@ -139,6 +144,94 @@ typedef struct
 *********************************************************************************************************************/
                                                  
 #define TOTAL_CONTROLLER_NUM                        (0x1u)
+
+/* Transmit Flags */
+#define CAN_FLAG_RQCP0             ((uint32)0x38000001) /*!< Request MailBox0 Flag */
+#define CAN_FLAG_RQCP1             ((uint32)0x38000100) /*!< Request MailBox1 Flag */
+#define CAN_FLAG_RQCP2             ((uint32)0x38010000) /*!< Request MailBox2 Flag */
+
+/* Receive Flags */
+#define CAN_FLAG_FMP0              ((uint32)0x12000003) /*!< FIFO 0 Message Pending Flag */
+#define CAN_FLAG_FF0               ((uint32)0x32000008) /*!< FIFO 0 Full Flag            */
+#define CAN_FLAG_FOV0              ((uint32)0x32000010) /*!< FIFO 0 Overrun Flag         */
+#define CAN_FLAG_FMP1              ((uint32)0x14000003) /*!< FIFO 1 Message Pending Flag */
+#define CAN_FLAG_FF1               ((uint32)0x34000008) /*!< FIFO 1 Full Flag            */
+#define CAN_FLAG_FOV1              ((uint32)0x34000010) /*!< FIFO 1 Overrun Flag         */
+
+/* Operating Mode Flags */
+#define CAN_FLAG_WKU               ((uint32)0x31000008) /*!< Wake up Flag */
+#define CAN_FLAG_SLAK              ((uint32)0x31000012) /*!< Sleep acknowledge Flag */
+/* Note: When SLAK intterupt is disabled (SLKIE=0), no polling on SLAKI is possible. 
+         In this case the SLAK bit can be polled.*/
+
+/* Error Flags */
+#define CAN_FLAG_EWG               ((uint32)0x10F00001) /*!< Error Warning Flag   */
+#define CAN_FLAG_EPV               ((uint32)0x10F00002) /*!< Error Passive Flag   */
+#define CAN_FLAG_BOF               ((uint32)0x10F00004) /*!< Bus-Off Flag         */
+#define CAN_FLAG_LEC               ((uint32)0x30F00070) /*!< Last error code Flag */
+
+#define IS_CAN_GET_FLAG(FLAG) (((FLAG) == CAN_FLAG_LEC)  || ((FLAG) == CAN_FLAG_BOF)   || \
+                               ((FLAG) == CAN_FLAG_EPV)  || ((FLAG) == CAN_FLAG_EWG)   || \
+                               ((FLAG) == CAN_FLAG_WKU)  || ((FLAG) == CAN_FLAG_FOV0)  || \
+                               ((FLAG) == CAN_FLAG_FF0)  || ((FLAG) == CAN_FLAG_FMP0)  || \
+                               ((FLAG) == CAN_FLAG_FOV1) || ((FLAG) == CAN_FLAG_FF1)   || \
+                               ((FLAG) == CAN_FLAG_FMP1) || ((FLAG) == CAN_FLAG_RQCP2) || \
+                               ((FLAG) == CAN_FLAG_RQCP1)|| ((FLAG) == CAN_FLAG_RQCP0) || \
+                               ((FLAG) == CAN_FLAG_SLAK ))
+
+#define IS_CAN_CLEAR_FLAG(FLAG)(((FLAG) == CAN_FLAG_LEC) || ((FLAG) == CAN_FLAG_RQCP2) || \
+                                ((FLAG) == CAN_FLAG_RQCP1)  || ((FLAG) == CAN_FLAG_RQCP0) || \
+                                ((FLAG) == CAN_FLAG_FF0)  || ((FLAG) == CAN_FLAG_FOV0) ||\
+                                ((FLAG) == CAN_FLAG_FF1) || ((FLAG) == CAN_FLAG_FOV1) || \
+                                ((FLAG) == CAN_FLAG_WKU) || ((FLAG) == CAN_FLAG_SLAK))
+
+
+/**  CAN_synchronisation_jump_width  **/
+
+#define CAN_SJW_1tq                 ((uint8)0x00)  /*!< 1 time quantum */
+#define CAN_SJW_2tq                 ((uint8)0x01)  /*!< 2 time quantum */
+#define CAN_SJW_3tq                 ((uint8)0x02)  /*!< 3 time quantum */
+#define CAN_SJW_4tq                 ((uint8)0x03)  /*!< 4 time quantum */
+
+#define IS_CAN_SJW(SJW) (((SJW) == CAN_SJW_1tq) || ((SJW) == CAN_SJW_2tq)|| \
+                         ((SJW) == CAN_SJW_3tq) || ((SJW) == CAN_SJW_4tq))
+
+
+/**  CAN_time_quantum_in_bit_segment_1  **/
+
+#define CAN_BS1_1tq                 ((uint8)0x00)  /*!< 1 time quantum */
+#define CAN_BS1_2tq                 ((uint8)0x01)  /*!< 2 time quantum */
+#define CAN_BS1_3tq                 ((uint8)0x02)  /*!< 3 time quantum */
+#define CAN_BS1_4tq                 ((uint8)0x03)  /*!< 4 time quantum */
+#define CAN_BS1_5tq                 ((uint8)0x04)  /*!< 5 time quantum */
+#define CAN_BS1_6tq                 ((uint8)0x05)  /*!< 6 time quantum */
+#define CAN_BS1_7tq                 ((uint8)0x06)  /*!< 7 time quantum */
+#define CAN_BS1_8tq                 ((uint8)0x07)  /*!< 8 time quantum */
+#define CAN_BS1_9tq                 ((uint8)0x08)  /*!< 9 time quantum */
+#define CAN_BS1_10tq                ((uint8)0x09)  /*!< 10 time quantum */
+#define CAN_BS1_11tq                ((uint8)0x0A)  /*!< 11 time quantum */
+#define CAN_BS1_12tq                ((uint8)0x0B)  /*!< 12 time quantum */
+#define CAN_BS1_13tq                ((uint8)0x0C)  /*!< 13 time quantum */
+#define CAN_BS1_14tq                ((uint8)0x0D)  /*!< 14 time quantum */
+#define CAN_BS1_15tq                ((uint8)0x0E)  /*!< 15 time quantum */
+#define CAN_BS1_16tq                ((uint8)0x0F)  /*!< 16 time quantum */
+
+#define IS_CAN_BS1(BS1) ((BS1) <= CAN_BS1_16tq)
+
+
+/**  CAN_time_quantum_in_bit_segment_2  **/
+
+#define CAN_BS2_1tq                 ((uint8)0x00)  /*!< 1 time quantum */
+#define CAN_BS2_2tq                 ((uint8)0x01)  /*!< 2 time quantum */
+#define CAN_BS2_3tq                 ((uint8)0x02)  /*!< 3 time quantum */
+#define CAN_BS2_4tq                 ((uint8)0x03)  /*!< 4 time quantum */
+#define CAN_BS2_5tq                 ((uint8)0x04)  /*!< 5 time quantum */
+#define CAN_BS2_6tq                 ((uint8)0x05)  /*!< 6 time quantum */
+#define CAN_BS2_7tq                 ((uint8)0x06)  /*!< 7 time quantum */
+#define CAN_BS2_8tq                 ((uint8)0x07)  /*!< 8 time quantum */
+
+#define IS_CAN_BS2(BS2)    ((BS2) <= CAN_BS2_8tq)
+
 
 /* Peripheral memory map */
 #define PERIPH_BASE           ((u32)0x40000000)
@@ -237,7 +330,7 @@ typedef struct
 #define RDH1R(controllerID)                      (CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)->RDHR)
 
 
-/* Bitmask of MCR: */
+/* Bitmask of MCR(CAN master control register) */
 #define MCR_INRQ                                   ((uint32)0x00000001)   /* Initialization request  */ 
 #define MCR_SLEEP                                  ((uint32)0x00000002)   /* Sleep mode request  */ 
 #define MCR_TXFP                                   ((uint32)0x00000004)   /* Transmit FIFO priority */ 
@@ -250,7 +343,7 @@ typedef struct
 #define MCR_DBF                                    ((uint32)0x00010000)   /*  Debug freeze  */ 
 
     
-/* Bitmask of MSR: */
+/* Bitmask of MSR(CAN master status register) */
 #define MSR_INAK                                  ((uint32)0x00000001)     /* Initialization acknowledge */  
 #define MSR_SLAK                                  ((uint32)0x00000002)     /* Sleep acknowledge  */  
 #define MSR_ERRI                                  ((uint32)0x00000004)     /* Error interrupt */  
@@ -261,7 +354,21 @@ typedef struct
 #define MSR_SAMP                                  ((uint32)0x00000400)     /* Last sample point */  
 #define MSR_RX                                    ((uint32)0x00000800)     /* CAN Rx signal */  
 
-
+/* Bitmask of IER(CAN interrupt enable register) */
+#define IER_TMEIE                                 ((uint32)0x00000001)     /* Transmit mailbox empty interrupt enable */  
+#define IER_FMPIE0                                ((uint32)0x00000002)     /* FIFO message pending interrupt enable  */  
+#define IER_FFIE0                                 ((uint32)0x00000004)     /* FIFO full interrupt enable */  
+#define IER_FOVIE0                                ((uint32)0x00000008)     /* FIFO overrun interrupt enable */  
+#define IER_FMPIE1                                ((uint32)0x00000010)     /* FIFO message pending interrupt enable */  
+#define IER_FFIE1                                 ((uint32)0x00000020)     /* FIFO full interrupt enable */  
+#define IER_FOVIE1                                ((uint32)0x00000040)     /* FIFO overrun interrupt enable */  
+#define IER_EWGIE                                 ((uint32)0x00000100)     /* Error warning interrupt enable */  
+#define IER_EPVIE                                 ((uint32)0x00000200)     /* Error passive interrupt enable */  
+#define IER_BOFIE                                 ((uint32)0x00000400)     /* Bus-off interrupt enable */  
+#define IER_LECIE                                 ((uint32)0x00000800)     /* Last error code interrupt enable */ 
+#define IER_ERRIE                                 ((uint32)0x00008000)     /* Error interrupt enable */  
+#define IER_WKUIE                                 ((uint32)0x00010000)     /* Wakeup interrupt enable */  
+#define IER_SLKIE                                 ((uint32)0x00020000)     /* Sleep interrupt enable */  
 
 /*******************************************************************/
 #define CAN_CONTROLLER_BAUD_RATE
@@ -274,68 +381,46 @@ typedef struct
 /*Interrupt related register setting*/
 
 /*Controller 0*/
-#if (CAN_USED_CONTROLLER_NUM>=1)   
+#if (CAN_USED_CONTROLLER_NUM >= 1)   
  
   #if (CAN0_BUSOFF_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_CTRLR_EIE_CFG  CTRLR_EIE
+    #define CAN0_ERROR_INT_CFG    IER_ERRIE | IER_BOFIE | IER_EWGIE
   #elif (CAN0_BUSOFF_PROCESSING == CAN_POLLING)
-    #define CAN0_CTRLR_EIE_CFG  ((uint16)0x00)
+    #define CAN0_ERROR_INT_CFG    ((uint32)0x0000)
   #else
     #error "!!!ERROR FOR CAN0_BUSOFF_CFG!!!"
   #endif
 
   #if (CAN0_TX_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_IF1MCTR_TxIE_CFG  IFxMCTR_TXIE
-    
+    #define CAN0_TxIE_CFG    IER_TMEIE
   #elif (CAN0_TX_PROCESSING == CAN_POLLING)
-    #define CAN0_IF1MCTR_TxIE_CFG  ((uint16)0x00)
+    #define CAN0_TxIE_CFG    ((uint32)0x0000)
   #else
     #error "!!!ERROR FOR CAN0_TX_CFG!!!"
   #endif
 
   #if (CAN0_RX_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_IF2MCTR_RxIE_CFG  IFxMCTR_RXIE
-  #elif (CAN0_RX_PROCESSING == CAN_POLLING)
-    #define CAN0_IF2MCTR_RxIE_CFG  ((uint16)0x00)
+    #define CAN0_FIFO0_RxIE_CFG	 IER_FMPIE0 | IER_FFIE0 | IER_FOVIE0
+    #define CAN0_FIFO1_RxIE_CFG	 IER_FMPIE1 | IER_FFIE1 | IER_FOVIE1
+  #elif (CAN0_TX_PROCESSING == CAN_POLLING)
+    #define CAN0_FIFO0_RxIE_CFG	 ((uint32)0x0000)
+    #define CAN0_FIFO1_RxIE_CFG	 ((uint32)0x0000)
   #else
     #error "!!!ERROR FOR CAN0_RX_CFG!!!"
   #endif
 
-  #if ( (CAN0_TX_PROCESSING == CAN_INTERRUPT) || (CAN0_RX_PROCESSING == CAN_INTERRUPT) ||(CAN0_BUSOFF_PROCESSING == CAN_INTERRUPT))
-    #define CAN0_CTRLR_IE_CFG  CTRLR_IE
-  #elif  ((CAN0_TX_PROCESSING == CAN_POLLING) && (CAN0_RX_PROCESSING == CAN_POLLING) &&(CAN0_BUSOFF_PROCESSING == CAN_POLLING))
-    #define CAN0_CTRLR_IE_CFG  ((uint16)0x00)
-  #else
-    #error "!!!ERROR FOR CAN0_TX_CFG!!!"
-  #endif
-  
-  #if ( (CAN0_TX_PROCESSING == CAN_INTERRUPT) || (CAN0_RX_PROCESSING == CAN_INTERRUPT) )
-    #define CAN0_CTRLR_SIE_CFG  CTRLR_SIE
-  #elif ( (CAN0_TX_PROCESSING == CAN_POLLING) && (CAN0_RX_PROCESSING == CAN_POLLING) )
-    #define CAN0_CTRLR_SIE_CFG  ((uint16)0x00)
-  #else
-    #error "!!!ERROR FOR CAN0_TX_CFG!!!"
-  #endif
 
   #if (CAN0_WAKEUP_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_WAKEUP_INT_CFG  WUPIE
+    #define CAN0_WAKEUP_INT_CFG  IER_WKUIE
   #elif (CAN0_WAKEUP_PROCESSING == CAN_POLLING)
-    #define CAN0_WAKEUP_INT_CFG  ((uint16)0x00)
+    #define CAN0_WAKEUP_INT_CFG  ((uint32)0x0000)
   #else
     #error "!!!ERROR FOR CAN0_WAKEUP_CFG!!!"
   #endif
-  #if (CAN0_CLKSRC_BUSCLK == STD_ON)
-    #define CAN0_CLKSRC_CFG  ((uint8)0x40)
-  #elif (CAN0_CLKSRC_BUSCLK == STD_OFF)
-    #define CAN0_CLKSRC_CFG  ((uint16)0x00)
-  #else
-    #error "!!!ERROR FOR CAN0_BUSCLK_CFG!!!"
-  #endif
-  
   
     /* CAN Controller initialization value */
-    #define CAN0_MCR_INIT_VALUE	     ((CAN0_CTRLR_IE_CFG)|(CAN0_CTRLR_EIE_CFG)|(CTRLR_INIT)) 	
-    #define CAN0_IER_INIT_VALUE	     0x00F7
+    #define CAN0_MCR_INIT_VALUE	     (MCR_INRQ)
+    #define CAN0_IER_INIT_VALUE	     CAN0_ERROR_INT_CFG | CAN0_TxIE_CFG | CAN0_FIFO0_RxIE_CFG | CAN0_FIFO1_RxIE_CFG
     #define CAN0_BTR_INIT_VALUE	 
     
     #define CAN0_FMR_INIT_VALUE      0x00F0

@@ -641,7 +641,7 @@ void Can_DisableGlobalInterrupt(
 {
    if(0 == CanGlobalInterruptCount)
    {
-     __DI();
+     __disable_irq();  /* disable interrupt, for STM32 */
    }
    CanGlobalInterruptCount++;
    if(CanGlobalInterruptCount>250)
@@ -677,7 +677,7 @@ void Can_EnableGlobalInterrupt(
   }
   if(0 == CanGlobalInterruptCount)
   {
-    __EI();
+    __enable_irq();  /* enable interrupt, for STM32 */
   }
 }
 
