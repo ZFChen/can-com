@@ -15,6 +15,8 @@
 ***********************************************************************************************/
 #include "Can.h"
 #include "Can_Pl.h"
+#include "Stm32f10x_rcc.h"
+#include "Stm32f10x_gpio.h"
 
 /*CAN389: The implementation of the Can module shall provide the header file
 Can_Cfg.h that shall contain the pre-compile-time configuration parameters.*/
@@ -33,15 +35,15 @@ service shall be included.*/
 *  For debug
 ***********************************************************************************************/
 
-#define CAN_RX_MB_START(Controller)   (CanRxMBStartNum[Controller])
-#define CAN_RX_MB_END(Controller)     (CanRxMBStartNum[Controller]+CanRxMBSum[Controller])
-#define CAN_RX_MB_SUM(Controller)     (CanRxMBSum[Controller])
-#define CAN_TX_MB_START(Controller)   (CanTxMBStartNum[Controller])
-#define CAN_TX_MB_END(Controller)     (CanTxMBStartNum[Controller]+CanTxMBSum[Controller])
-#define CAN_TX_MB_SUM(Controller)     (CanTxMBSum[Controller])
-#define CAN_HOH_CONTROLLER_REF        (CanHardwareObjectConfig[HohIndex].ControllerRef)
-#define CAN_HOH_ID_REF                (CanHardwareObjectConfig[HohIndex].id)
-#define CAN_HOH_FILTERMASK_REF        (CanHardwareObjectConfig[HohIndex].filterRef)
+#define CAN_RX_MB_START(Controller)       (CanRxMBStartNum[Controller])
+#define CAN_RX_MB_END(Controller)         (CanRxMBStartNum[Controller]+CanRxMBSum[Controller])
+#define CAN_RX_MB_SUM(Controller)         (CanRxMBSum[Controller])
+#define CAN_TX_MB_START(Controller)       (CanTxMBStartNum[Controller])
+#define CAN_TX_MB_END(Controller)         (CanTxMBStartNum[Controller]+CanTxMBSum[Controller])
+#define CAN_TX_MB_SUM(Controller)         (CanTxMBSum[Controller])
+#define CAN_HOH_CONTROLLER_REF(HohIndex)        (CanHardwareObjectConfig[HohIndex].ControllerRef)
+#define CAN_HOH_ID_REF(HohIndex)                (CanHardwareObjectConfig[HohIndex].id)
+#define CAN_HOH_FILTERMASK_REF(HohIndex)        (CanHardwareObjectConfig[HohIndex].filterRef)
 
 /**********************************************************************************************
 *  For CAN_DEV_ERROR_DETECT
@@ -219,63 +221,110 @@ void Can_Init(
     Can_HwHandleType rxMBstart = 0;
     Can_HwHandleType rxMBend = 0;
     uint32 CanID=0;
+    uint32 filter_number_bit_pos = 0;
 
-    (void)Can_MemSet(EmptyFlagForHth,TRUE,CAN_USED_HOH_NUM);
-    (void)Can_MemSet(PduIdForHth,0xff,CAN_USED_HOH_NUM*(sizeof(PduIdType)));
-    (void)Can_MemSet(CanControllerInterruptCount,0x00,CAN_USED_CONTROLLER_NUM);
-    (void)Can_MemSet(CanControllerOldInterrupReg,0x00,CAN_USED_CONTROLLER_NUM*sizeof(Can_OldIERType));
+	GPIO_InitTypeDef       GPIO_InitStructure; 
+	CAN_InitTypeDef        CAN_InitStructure;
+	CAN_FilterInitTypeDef  CAN_FilterInitStruct;
+	
+    (void)Can_MemSet(EmptyFlagForHth,TRUE, CAN_USED_HOH_NUM);
+    (void)Can_MemSet(PduIdForHth, 0xff, CAN_USED_HOH_NUM*(sizeof(PduIdType)));
+    (void)Can_MemSet(CanControllerInterruptCount, 0x00, CAN_USED_CONTROLLER_NUM);
+    (void)Can_MemSet(CanControllerOldInterrupReg, 0x00, CAN_USED_CONTROLLER_NUM*sizeof(Can_OldIERType));
 
+    phyController = CanControllerIDtoPhys[Controller];
+    rxMBstart = CAN_RX_MB_START(Controller);
+    rxMBend = CAN_RX_MB_START(Controller) + CAN_RX_MB_SUM(Controller);
 
-        phyController = CanControllerIDtoPhys[Controller];
-        rxMBstart = CAN_RX_MB_START(Controller);
-        rxMBend=CAN_RX_MB_START(Controller) + CAN_RX_MB_SUM(Controller);
+    /* initialize the port of CAN Controller */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);//使能PORTA时钟																 
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);//使能CAN1时钟	
+    /* CAN1_TX --> PA12 */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP; //复用推挽
+	GPIO_Init(GPIOA, &GPIO_InitStructure);		//初始化IO
+    /* CAN1_RX --> PA11 */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;//上拉输入
+	GPIO_Init(GPIOA, &GPIO_InitStructure);//初始化IO
 
-        CTRLR(phyController)= CTRLR_INIT;
-        COER(phyController) = COER_OE;
-        /*Message Object make*/
-        for (MBNum = 1; MBNum <= CAN_CONCTROLLER_MB_NUM; MBNum++)
+	/* Exit from sleep mode */
+    CAN_MCR &= (~(uint32)CAN_MCR_SLEEP);
+    /* Request initialisation */
+    CAN_MCR |= CAN_MCR_INRQ;
+    /* Initialisation mode for the filter */
+    CAN_FMR |= FMR_FINIT;
+
+	filter_number_bit_pos = ((uint32)1) << CAN_FILTER_NUM;
+	/* Filter Deactivation */
+    CAN_FA1R &= ~(uint32)filter_number_bit_pos;
+	
+    /* Message Object make */
+    for (MBNum = 1; MBNum <= CAN_CONCTROLLER_MB_NUM; MBNum++)
+    {
+        if((MBNum >= rxMBstart) && (MBNum < rxMBend))
         {
-            if((MBNum>=rxMBstart)&&(MBNum<rxMBend))
-            {
-                HohIndex = Can_MBNumToHrh(CAN_CONTROLLER_ID,MBNum);
-                IF2CMSK(phyController) =CanRegInit[Controller].CanInitIF2CMSK; /*WR/RD=1 Mask=1 Arb=1 Control=1 CIP=0 TxRqst/NewDat=0 DataA=0 DataB=0*/
-                IF2MSK(phyController) = CanHardwareObjectConfig[HohIndex].filterRef;/*MXtd=1 MDir=1 res=1 MID28-MID18 all=1 MID17-MID0 all=0*/
-                CanID=CanHardwareObjectConfig[HohIndex].id;
-                #if (CAN_ID_TYPE_SUPPORT == CAN_STANDARD_ID_ONLY)
-                    IF2ARB(phyController) =(IFxARB_MSGVAL | ((CanID & 0x000007FFU)<<18));
-                #elif (CAN_ID_TYPE_SUPPORT == CAN_EXTERNED_ID_ONLY)
-                    IF2ARB(phyController) =(IFxARB_MSGVAL |IFxARB_XTD| ((CanID) & 0x1FFFFFFFU));
-                #elif (CAN_ID_TYPE_SUPPORT == CAN_MIXED_ID)
-                    if(0x7FFU < CanID)
-                    {
-                         IF2ARB(phyController) =IFxARB_MSGVAL |IFxARB_XTD| (CanID & IFxARB_ID_MASK);
-                    }else
-                    {
-                         IF2ARB(phyController) = IFxARB_MSGVAL | ((CanID & 0x000007FFU)<<18);
-                    }
-                 #endif
-                 IF2MCTR(phyController) = CanRegInit[Controller].CanInitIF2MCTR;/*0x1488NewDat=Nouse MsgLst=0 IntPnd=0 UMask=1 TxIE=0 RxIE=1 RmtEn=0 TxRqst=Nouse EoB=1 DLC=8*/
-                 IF2CREQ(phyController) = MBNum;/*transmit IFx to message RAM use buffer2*/
-            }else if((MBNum>=CAN_TX_MB_START(Controller))&&(MBNum<CAN_TX_MB_END(Controller)))
-            {
-                  /*do nothing*/
-            }else
-            {
-                 IF2CMSK(phyController) =0x00F0U;
-                 IF2ARB(phyController) =0x00000000U;
-                 IF2CREQ(phyController) = MBNum;
-            }
-        }
-        /****************************************************************************************/
-        /* CAN bus setting */
-        CTRLR(phyController) =0x0041; /*|= CTRLR_CCE; BTR/BRPE Write Enable */
-        BTR(phyController)   =CanRegInit[Controller].CanInitBTR;    /* 250kbps */
-        BRPER(phyController) =CanRegInit[Controller].CanInitBRPER;/* */
-        CTRLR(phyController) =CanRegInit[Controller].CanInitCTRLR;/* BTR/BRPE Write Disable */
+            HohIndex = Can_MBNumToHrh(CAN_CONTROLLER_ID, MBNum);
+			
+            CanID = CanHardwareObjectConfig[HohIndex].id;
+			
+            #if (CAN_ID_TYPE_SUPPORT == CAN_STANDARD_ID_ONLY)
+                CAN_FS1R(phyController) &= ~(uint32)filter_number_bit_pos;
+			    /* First 16-bit identifier and First 16-bit mask */
+                /* Or First 16-bit identifier and Second 16-bit identifier */
+                CAN_FR1(phyController, CAN_FILTER_NUM) = 
+                ((0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterMaskIdLow) << 16) |
+                    (0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterIdLow);
 
-        #if (CAN_DEV_ERROR_DETECT == STD_ON )
-            Can_State[Controller] = CAN_STOPPED;
-        #endif
+				/* Second 16-bit identifier and Second 16-bit mask */
+                /* Or Third 16-bit identifier and Fourth 16-bit identifier */
+                CAN_FR2(phyController, CAN_FILTER_NUM) = 
+                ((0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterMaskIdHigh) << 16) |
+                    (0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterIdHigh);
+				
+            #elif (CAN_ID_TYPE_SUPPORT == CAN_EXTERNED_ID_ONLY)
+                CAN_FS1R(phyController) |= filter_number_bit_pos;
+			    /* First 16-bit identifier and First 16-bit mask */
+                /* Or First 16-bit identifier and Second 16-bit identifier */
+                CAN_FR1(phyController, CAN_FILTER_NUM) = 
+                ((0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterIdHigh) << 16) |
+                    (0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterIdLow);
+				
+				/* Second 16-bit identifier and Second 16-bit mask */
+                /* Or Third 16-bit identifier and Fourth 16-bit identifier */
+                CAN_FR2(phyController, CAN_FILTER_NUM) = 
+                ((0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterMaskIdHigh) << 16) |
+                    (0x0000FFFF & (uint32)CAN_FilterInitStruct->CAN_FilterMaskIdLow);
+				
+            #elif (CAN_ID_TYPE_SUPPORT == CAN_MIXED_ID)
+                if(0x7FFU < CanID)
+                {
+                     
+                }else
+                {
+                     
+                }
+             #endif
+			 
+        }else if((MBNum>=CAN_TX_MB_START(Controller))&&(MBNum<CAN_TX_MB_END(Controller)))
+        {
+              /*do nothing*/
+        }else
+        {
+        
+        }
+    }
+    /****************************************************************************************/
+    /* CAN bus setting */
+    CTRLR(phyController) = 0x0041; /*|= CTRLR_CCE; BTR/BRPE Write Enable */
+    BTR(phyController)   = CanRegInit[Controller].CanInitBTR;    /* 250kbps */
+    BRPER(phyController) = CanRegInit[Controller].CanInitBRPER;/* */
+    CTRLR(phyController) = CanRegInit[Controller].CanInitCTRLR;/* BTR/BRPE Write Disable */
+
+    #if (CAN_DEV_ERROR_DETECT == STD_ON )
+        Can_State[Controller] = CAN_STOPPED;
+    #endif
 }
 /* END OF CanInit */
 

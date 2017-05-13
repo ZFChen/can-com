@@ -24,7 +24,6 @@
 #define CAN_STANDARD_ID_ONLY                 (1U)
 #define CAN_EXTERNED_ID_ONLY                 (2U)
 #define CAN_MIXED_ID                         (3U)
-#define CAN_FAR
 #define CAN_HOH_TX_MASK                      ((uint8)0x01U)
 #define CAN_HOH_RX_MASK                      ((uint8)0x00U)
 #define CAN_HOH_FULL_MASK                    ((uint8)0x02U)

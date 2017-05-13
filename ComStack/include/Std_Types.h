@@ -69,6 +69,8 @@ typedef   signed short    sint16;
 typedef   signed long       si32;
 typedef   signed long     sint32;
 
+typedef volatile unsigned long     vuint32;
+
 typedef uint8 Std_ReturnType;
 
 typedef struct

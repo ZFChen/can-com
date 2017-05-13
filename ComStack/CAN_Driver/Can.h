@@ -72,18 +72,18 @@ exceptions depending on its configuration (development/production)*/
 /**********************************************************************************************************************
 *   Declarations  of variable
 *********************************************************************************************************************/
-extern const  CAN_FAR uint8  CanControllerIDtoPhys[];
-extern const  CAN_FAR Can_RegInitType  CanRegInit[];
-extern const  CAN_FAR Can_HardwareObjectConfigType   CanHardwareObjectConfig[];
+extern const  uint8  CanControllerIDtoPhys[];
+extern const  Can_RegInitType  CanRegInit[];
+extern const  Can_HardwareObjectConfigType   CanHardwareObjectConfig[];
 
-extern const  CAN_FAR Can_HwHandleType CanControllerIDtoHRH[];
+extern const  Can_HwHandleType CanControllerIDtoHRH[];
 
-extern const  CAN_FAR uint8 CanIntConfig[];
-extern const  CAN_FAR Can_HwHandleType CanRxMBStartNum[];
-extern const  CAN_FAR Can_HwHandleType CanRxMBSum[];
-extern const  CAN_FAR Can_HwHandleType CanTxMBStartNum[];
-extern const  CAN_FAR Can_HwHandleType CanTxMBSum[];
-extern const  CAN_FAR Can_HwHandleType CanHohStartNum[];
+extern const  uint8 CanIntConfig[];
+extern const  Can_HwHandleType CanRxMBStartNum[];
+extern const  Can_HwHandleType CanRxMBSum[];
+extern const  Can_HwHandleType CanTxMBStartNum[];
+extern const  Can_HwHandleType CanTxMBSum[];
+extern const  Can_HwHandleType CanHohStartNum[];
 
 
 /**********************************************************************************************************************

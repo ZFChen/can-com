@@ -96,17 +96,91 @@ typedef volatile struct
   volatile uint32 RDHR;
 } CAN_FIFOMailBox_TypeDef;
 
-typedef volatile struct
+typedef struct
 {
-     uint32      CanInitMCR		;
-     uint32      CanInitFMR		;
-     uint32      CanInitFM1R	;
-     uint32      CanInitFS1R	;
-     uint32      CanInitFFA1R	;
-     uint32      CanInitFA1R	; 
-     uint32      CanInitBTR		;
-     uint32      CanInitFA1R	;
+  uint16 CAN_Prescaler;   /*!< Specifies the length of a time quantum. 
+                                 It ranges from 1 to 1024. */
+  
+  uint8 CAN_Mode;         /*!< Specifies the CAN operating mode.
+                                 This parameter can be a value of 
+                                @ref CAN_operating_mode */
+
+  uint8 CAN_SJW;          /*!< Specifies the maximum number of time quanta 
+                                 the CAN hardware is allowed to lengthen or 
+                                 shorten a bit to perform resynchronization.
+                                 This parameter can be a value of 
+                                 @ref CAN_synchronisation_jump_width */
+
+  uint8 CAN_BS1;          /*!< Specifies the number of time quanta in Bit 
+                                 Segment 1. This parameter can be a value of 
+                                 @ref CAN_time_quantum_in_bit_segment_1 */
+
+  uint8 CAN_BS2;          /*!< Specifies the number of time quanta in Bit 
+                                 Segment 2.
+                                 This parameter can be a value of 
+                                 @ref CAN_time_quantum_in_bit_segment_2 */
+  
+  FunctionalState CAN_TTCM; /*!< Enable or disable the time triggered 
+                                 communication mode. This parameter can be set 
+                                 either to ENABLE or DISABLE. */
+  
+  FunctionalState CAN_ABOM;  /*!< Enable or disable the automatic bus-off 
+                                  management. This parameter can be set either 
+                                  to ENABLE or DISABLE. */
+
+  FunctionalState CAN_AWUM;  /*!< Enable or disable the automatic wake-up mode. 
+                                  This parameter can be set either to ENABLE or 
+                                  DISABLE. */
+
+  FunctionalState CAN_NART;  /*!< Enable or disable the no-automatic 
+                                  retransmission mode. This parameter can be 
+                                  set either to ENABLE or DISABLE. */
+
+  FunctionalState CAN_RFLM;  /*!< Enable or disable the Receive FIFO Locked mode.
+                                  This parameter can be set either to ENABLE 
+                                  or DISABLE. */
+
+  FunctionalState CAN_TXFP;  /*!< Enable or disable the transmit FIFO priority.
+                                  This parameter can be set either to ENABLE 
+                                  or DISABLE. */
 } Can_RegInitType;
+
+
+/* CAN filter init structure definition */
+typedef struct
+{
+  uint16 CAN_FilterIdHigh;         /*!< Specifies the filter identification number (MSBs for a 32-bit
+                                              configuration, first one for a 16-bit configuration).
+                                              This parameter can be a value between 0x0000 and 0xFFFF */
+
+  uint16 CAN_FilterIdLow;          /*!< Specifies the filter identification number (LSBs for a 32-bit
+                                              configuration, second one for a 16-bit configuration).
+                                              This parameter can be a value between 0x0000 and 0xFFFF */
+
+  uint16 CAN_FilterMaskIdHigh;     /*!< Specifies the filter mask number or identification number,
+                                              according to the mode (MSBs for a 32-bit configuration,
+                                              first one for a 16-bit configuration).
+                                              This parameter can be a value between 0x0000 and 0xFFFF */
+
+  uint16 CAN_FilterMaskIdLow;      /*!< Specifies the filter mask number or identification number,
+                                              according to the mode (LSBs for a 32-bit configuration,
+                                              second one for a 16-bit configuration).
+                                              This parameter can be a value between 0x0000 and 0xFFFF */
+
+  uint16 CAN_FilterFIFOAssignment; /*!< Specifies the FIFO (0 or 1) which will be assigned to the filter.
+                                              This parameter can be a value of @ref CAN_filter_FIFO */
+  
+  uint8 CAN_FilterNumber;          /*!< Specifies the filter which will be initialized. It ranges from 0 to 13. */
+
+  uint8 CAN_FilterMode;            /*!< Specifies the filter mode to be initialized.
+                                              This parameter can be a value of @ref CAN_filter_mode */
+
+  uint8 CAN_FilterScale;           /*!< Specifies the filter scale.
+                                              This parameter can be a value of @ref CAN_filter_scale */
+
+  FunctionalState CAN_FilterActivation; /*!< Enable or disable the filter.
+                                              This parameter can be set either to ENABLE or DISABLE. */
+} CAN_FilterInitTypeDef;
 
 typedef struct
 {
@@ -115,27 +189,27 @@ typedef struct
 
 typedef struct
 {
-  vu32 MCR;
-  vu32 MSR;
-  vu32 TSR;
-  vu32 RF0R;
-  vu32 RF1R;
-  vu32 IER;
-  vu32 ESR;
-  vu32 BTR;
-  u32  RESERVED0[88];
+  vuint32 MCR;
+  vuint32 MSR;
+  vuint32 TSR;
+  vuint32 RF0R;
+  vuint32 RF1R;
+  vuint32 IER;
+  vuint32 ESR;
+  vuint32 BTR;
+  si32  RESERVED0[88];
   CAN_TxMailBox_TypeDef sTxMailBox[3];
   CAN_FIFOMailBox_TypeDef sFIFOMailBox[2];
-  u32  RESERVED1[12];
-  vu32 FMR;
-  vu32 FM1R;
-  u32  RESERVED2;
-  vu32 FS1R;
-  u32  RESERVED3;
-  vu32 FFA1R;
-  u32  RESERVED4;
-  vu32 FA1R;
-  u32  RESERVED5[8];
+  si32  RESERVED1[12];
+  vuint32 FMR;
+  vuint32 FM1R;
+  si32  RESERVED2;
+  vuint32 FS1R;
+  si32  RESERVED3;
+  vuint32 FFA1R;
+  si32  RESERVED4;
+  vuint32 FA1R;
+  si32  RESERVED5[8];
   CAN_FilterRegister_TypeDef sFilterRegister[14];
 } CAN_TypeDef;
 
@@ -144,6 +218,40 @@ typedef struct
 *********************************************************************************************************************/
                                                  
 #define TOTAL_CONTROLLER_NUM                        (0x1u)
+
+/* CAN Master Control Register bits */
+
+#define MCR_DBF      ((uint32)0x00010000) /* software master reset */
+
+/* CAN Mailbox Transmit Request */
+#define TMIDxR_TXRQ  ((uint32)0x00000001) /* Transmit mailbox request */
+
+/* CAN Filter Master Register bits */
+#define FMR_FINIT    ((uint32)0x00000001) /* Filter init mode */
+
+/* Time out for INAK bit */
+#define INAK_TIMEOUT        ((uint32)0x0000FFFF)
+/* Time out for SLAK bit */
+#define SLAK_TIMEOUT        ((uint32)0x0000FFFF)
+
+
+/* Flags in TSR register */
+#define CAN_FLAGS_TSR              ((uint32)0x08000000) 
+/* Flags in RF1R register */
+#define CAN_FLAGS_RF1R             ((uint32)0x04000000) 
+/* Flags in RF0R register */
+#define CAN_FLAGS_RF0R             ((uint32)0x02000000) 
+/* Flags in MSR register */
+#define CAN_FLAGS_MSR              ((uint32)0x01000000) 
+/* Flags in ESR register */
+#define CAN_FLAGS_ESR              ((uint32)0x00F00000) 
+
+/* Mailboxes definition */
+#define CAN_TXMAILBOX_0                   ((uint8)0x00)
+#define CAN_TXMAILBOX_1                   ((uint8)0x01)
+#define CAN_TXMAILBOX_2                   ((uint8)0x02) 
+
+#define CAN_MODE_MASK              ((uint32) 0x00000003)
 
 /* Transmit Flags */
 #define CAN_FLAG_RQCP0             ((uint32)0x38000001) /*!< Request MailBox0 Flag */
@@ -186,8 +294,18 @@ typedef struct
                                 ((FLAG) == CAN_FLAG_WKU) || ((FLAG) == CAN_FLAG_SLAK))
 
 
-/**  CAN_synchronisation_jump_width  **/
+/* defgroup CAN_Mode */
+#define CAN_Mode_Normal             ((uint8)0x00)  /*!< normal mode */
+#define CAN_Mode_LoopBack           ((uint8)0x01)  /*!< loopback mode */
+#define CAN_Mode_Silent             ((uint8)0x02)  /*!< silent mode */
+#define CAN_Mode_Silent_LoopBack    ((uint8)0x03)  /*!< loopback combined with silent mode */
 
+#define IS_CAN_MODE(MODE) (((MODE) == CAN_Mode_Normal) || \
+                           ((MODE) == CAN_Mode_LoopBack)|| \
+                           ((MODE) == CAN_Mode_Silent) || \
+                           ((MODE) == CAN_Mode_Silent_LoopBack))
+
+/**  CAN_synchronisation_jump_width  **/
 #define CAN_SJW_1tq                 ((uint8)0x00)  /*!< 1 time quantum */
 #define CAN_SJW_2tq                 ((uint8)0x01)  /*!< 2 time quantum */
 #define CAN_SJW_3tq                 ((uint8)0x02)  /*!< 3 time quantum */
@@ -255,14 +373,14 @@ typedef struct
 #define CAN_CONTROLLER_FilterBankReg_ADR(controllerID)             ((CAN_FilterBankRegister_TypeDef *)(CanBasisAddress[controllerID]+0x240))
 
 /******************************* CAN Control and Status register ********************************************/
-#define MCR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_MCR)
-#define MSR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_MSR)
-#define TSR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_TSR) 
-#define RF0R(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF0R)
-#define RF1F(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF1F)
-#define IER(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_IER)
-#define ESR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_ESR)
-#define BTR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_BTR)  
+#define CAN_MCR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_MCR)
+#define CAN_MSR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_MSR)
+#define CAN_TSR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_TSR) 
+#define CAN_RF0R(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF0R)
+#define CAN_RF1F(controllerID)                        (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_RF1F)
+#define CAN_IER(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_IER)
+#define CAN_ESR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_ESR)
+#define CAN_BTR(controllerID)                         (CAN_CONTROLLER_ProReg_ADR(controllerID)->CAN_BTR)  
 
 /******************************* CAN Filter register ********************************************/
 #define CAN_FMR(controllerID)              (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FMR)
@@ -270,6 +388,9 @@ typedef struct
 #define CAN_FS1R(controllerID)             (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FS1R)
 #define CAN_FFA1R(controllerID)            (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FFA1R)
 #define CAN_FA1R(controllerID)             (CAN_CONTROLLER_FilterConfigReg_ADR(controllerID)->FA1R)
+
+#define CAN_FR1(controllerID, num)         (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[num]->FR1)
+#define CAN_FR2(controllerID, num)         (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[num]->FR2)
 
 #define CAN_F0R1(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[0]->FR1)
 #define CAN_F0R2(controllerID)             (CAN_CONTROLLER_FilterBankReg_ADR(controllerID)->FR[0]->FR2)
@@ -330,45 +451,45 @@ typedef struct
 #define RDH1R(controllerID)                      (CAN_CONTROLLER_RxFIFOMailBox1Reg_ADR(controllerID)->RDHR)
 
 
-/* Bitmask of MCR(CAN master control register) */
-#define MCR_INRQ                                   ((uint32)0x00000001)   /* Initialization request  */ 
-#define MCR_SLEEP                                  ((uint32)0x00000002)   /* Sleep mode request  */ 
-#define MCR_TXFP                                   ((uint32)0x00000004)   /* Transmit FIFO priority */ 
-#define MCR_RFLM                                   ((uint32)0x00000008)   /*  Receive FIFO locked mode  */ 
-#define MCR_NART                                   ((uint32)0x00000010)   /*  No automatic retransmission */ 
-#define MCR_AWUM                                   ((uint32)0x00000020)   /*  Automatic wakeup mode */ 
-#define MCR_ABOM                                   ((uint32)0x00000040)   /*  Automatic bus-off management */ 
-#define MCR_TTCM                                   ((uint32)0x00000080)   /*  Time triggered communication mode */ 
-#define MCR_RESET                                  ((uint32)0x00008000)   /*  bxCAN software master reset */ 
-#define MCR_DBF                                    ((uint32)0x00010000)   /*  Debug freeze  */ 
+/* Bitmask of CAN_MCR(CAN master control register) */
+#define CAN_MCR_INRQ                                   ((uint32)0x00000001)   /* Initialization request  */ 
+#define CAN_MCR_SLEEP                                  ((uint32)0x00000002)   /* Sleep mode request  */ 
+#define CAN_MCR_TXFP                                   ((uint32)0x00000004)   /* Transmit FIFO priority */ 
+#define CAN_MCR_RFLM                                   ((uint32)0x00000008)   /*  Receive FIFO locked mode  */ 
+#define CAN_MCR_NART                                   ((uint32)0x00000010)   /*  No automatic retransmission */ 
+#define CAN_MCR_AWUM                                   ((uint32)0x00000020)   /*  Automatic wakeup mode */ 
+#define CAN_MCR_ABOM                                   ((uint32)0x00000040)   /*  Automatic bus-off management */ 
+#define CAN_MCR_TTCM                                   ((uint32)0x00000080)   /*  Time triggered communication mode */ 
+#define CAN_MCR_RESET                                  ((uint32)0x00008000)   /*  bxCAN software master reset */ 
+#define CAN_MCR_DBF                                    ((uint32)0x00010000)   /*  Debug freeze  */ 
 
     
 /* Bitmask of MSR(CAN master status register) */
-#define MSR_INAK                                  ((uint32)0x00000001)     /* Initialization acknowledge */  
-#define MSR_SLAK                                  ((uint32)0x00000002)     /* Sleep acknowledge  */  
-#define MSR_ERRI                                  ((uint32)0x00000004)     /* Error interrupt */  
-#define MSR_WKUI                                  ((uint32)0x00000008)     /* Wakeup interrupt */  
-#define MSR_SLAKI                                 ((uint32)0x00000010)     /* Sleep acknowledge interrupt */  
-#define MSR_TXM                                   ((uint32)0x00000100)     /* Transmit mode */  
-#define MSR_RXM                                   ((uint32)0x00000200)     /* Receive mode */  
-#define MSR_SAMP                                  ((uint32)0x00000400)     /* Last sample point */  
-#define MSR_RX                                    ((uint32)0x00000800)     /* CAN Rx signal */  
+#define CAN_MSR_INAK                                  ((uint32)0x00000001)     /* Initialization acknowledge */  
+#define CAN_MSR_SLAK                                  ((uint32)0x00000002)     /* Sleep acknowledge  */  
+#define CAN_MSR_ERRI                                  ((uint32)0x00000004)     /* Error interrupt */  
+#define CAN_MSR_WKUI                                  ((uint32)0x00000008)     /* Wakeup interrupt */  
+#define CAN_MSR_SLAKI                                 ((uint32)0x00000010)     /* Sleep acknowledge interrupt */  
+#define CAN_MSR_TXM                                   ((uint32)0x00000100)     /* Transmit mode */  
+#define CAN_MSR_RXM                                   ((uint32)0x00000200)     /* Receive mode */  
+#define CAN_MSR_SAMP                                  ((uint32)0x00000400)     /* Last sample point */  
+#define CAN_MSR_RX                                    ((uint32)0x00000800)     /* CAN Rx signal */  
 
 /* Bitmask of IER(CAN interrupt enable register) */
-#define IER_TMEIE                                 ((uint32)0x00000001)     /* Transmit mailbox empty interrupt enable */  
-#define IER_FMPIE0                                ((uint32)0x00000002)     /* FIFO message pending interrupt enable  */  
-#define IER_FFIE0                                 ((uint32)0x00000004)     /* FIFO full interrupt enable */  
-#define IER_FOVIE0                                ((uint32)0x00000008)     /* FIFO overrun interrupt enable */  
-#define IER_FMPIE1                                ((uint32)0x00000010)     /* FIFO message pending interrupt enable */  
-#define IER_FFIE1                                 ((uint32)0x00000020)     /* FIFO full interrupt enable */  
-#define IER_FOVIE1                                ((uint32)0x00000040)     /* FIFO overrun interrupt enable */  
-#define IER_EWGIE                                 ((uint32)0x00000100)     /* Error warning interrupt enable */  
-#define IER_EPVIE                                 ((uint32)0x00000200)     /* Error passive interrupt enable */  
-#define IER_BOFIE                                 ((uint32)0x00000400)     /* Bus-off interrupt enable */  
-#define IER_LECIE                                 ((uint32)0x00000800)     /* Last error code interrupt enable */ 
-#define IER_ERRIE                                 ((uint32)0x00008000)     /* Error interrupt enable */  
-#define IER_WKUIE                                 ((uint32)0x00010000)     /* Wakeup interrupt enable */  
-#define IER_SLKIE                                 ((uint32)0x00020000)     /* Sleep interrupt enable */  
+#define CAN_IER_TMEIE                                 ((uint32)0x00000001)     /* Transmit mailbox empty interrupt enable */  
+#define CAN_IER_FMPIE0                                ((uint32)0x00000002)     /* FIFO message pending interrupt enable  */  
+#define CAN_IER_FFIE0                                 ((uint32)0x00000004)     /* FIFO full interrupt enable */  
+#define CAN_IER_FOVIE0                                ((uint32)0x00000008)     /* FIFO overrun interrupt enable */  
+#define CAN_IER_FMPIE1                                ((uint32)0x00000010)     /* FIFO message pending interrupt enable */  
+#define CAN_IER_FFIE1                                 ((uint32)0x00000020)     /* FIFO full interrupt enable */  
+#define CAN_IER_FOVIE1                                ((uint32)0x00000040)     /* FIFO overrun interrupt enable */  
+#define CAN_IER_EWGIE                                 ((uint32)0x00000100)     /* Error warning interrupt enable */  
+#define CAN_IER_EPVIE                                 ((uint32)0x00000200)     /* Error passive interrupt enable */  
+#define CAN_IER_BOFIE                                 ((uint32)0x00000400)     /* Bus-off interrupt enable */  
+#define CAN_IER_LECIE                                 ((uint32)0x00000800)     /* Last error code interrupt enable */ 
+#define CAN_IER_ERRIE                                 ((uint32)0x00008000)     /* Error interrupt enable */  
+#define CAN_IER_WKUIE                                 ((uint32)0x00010000)     /* Wakeup interrupt enable */  
+#define CAN_IER_SLKIE                                 ((uint32)0x00020000)     /* Sleep interrupt enable */  
 
 /*******************************************************************/
 #define CAN_CONTROLLER_BAUD_RATE
@@ -384,7 +505,7 @@ typedef struct
 #if (CAN_USED_CONTROLLER_NUM >= 1)   
  
   #if (CAN0_BUSOFF_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_ERROR_INT_CFG    IER_ERRIE | IER_BOFIE | IER_EWGIE
+    #define CAN0_ERROR_INT_CFG    CAN_IER_ERRIE | CAN_IER_BOFIE | CAN_IER_EWGIE
   #elif (CAN0_BUSOFF_PROCESSING == CAN_POLLING)
     #define CAN0_ERROR_INT_CFG    ((uint32)0x0000)
   #else
@@ -392,7 +513,7 @@ typedef struct
   #endif
 
   #if (CAN0_TX_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_TxIE_CFG    IER_TMEIE
+    #define CAN0_TxIE_CFG    CAN_IER_TMEIE
   #elif (CAN0_TX_PROCESSING == CAN_POLLING)
     #define CAN0_TxIE_CFG    ((uint32)0x0000)
   #else
@@ -400,8 +521,8 @@ typedef struct
   #endif
 
   #if (CAN0_RX_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_FIFO0_RxIE_CFG	 IER_FMPIE0 | IER_FFIE0 | IER_FOVIE0
-    #define CAN0_FIFO1_RxIE_CFG	 IER_FMPIE1 | IER_FFIE1 | IER_FOVIE1
+    #define CAN0_FIFO0_RxIE_CFG	 CAN_IER_FMPIE0 | CAN_IER_FFIE0 | CAN_IER_FOVIE0
+    #define CAN0_FIFO1_RxIE_CFG	 CAN_IER_FMPIE1 | CAN_IER_FFIE1 | CAN_IER_FOVIE1
   #elif (CAN0_TX_PROCESSING == CAN_POLLING)
     #define CAN0_FIFO0_RxIE_CFG	 ((uint32)0x0000)
     #define CAN0_FIFO1_RxIE_CFG	 ((uint32)0x0000)
@@ -411,7 +532,7 @@ typedef struct
 
 
   #if (CAN0_WAKEUP_PROCESSING == CAN_INTERRUPT)
-    #define CAN0_WAKEUP_INT_CFG  IER_WKUIE
+    #define CAN0_WAKEUP_INT_CFG  CAN_IER_WKUIE
   #elif (CAN0_WAKEUP_PROCESSING == CAN_POLLING)
     #define CAN0_WAKEUP_INT_CFG  ((uint32)0x0000)
   #else
@@ -419,7 +540,7 @@ typedef struct
   #endif
   
     /* CAN Controller initialization value */
-    #define CAN0_MCR_INIT_VALUE	     (MCR_INRQ)
+    #define CAN0_MCR_INIT_VALUE	     (CAN_MCR_INRQ)
     #define CAN0_IER_INIT_VALUE	     CAN0_ERROR_INT_CFG | CAN0_TxIE_CFG | CAN0_FIFO0_RxIE_CFG | CAN0_FIFO1_RxIE_CFG
     #define CAN0_BTR_INIT_VALUE	 
     

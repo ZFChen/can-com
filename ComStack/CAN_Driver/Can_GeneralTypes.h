@@ -131,18 +131,18 @@ Description: This type is used to provide ID, DLC and SDU from CAN interface to 
 typedef struct
 {
     PduIdType   swPduHandle;
-    uint8       length ;
-    Can_IdType  id ;
+    uint8       length;
+    Can_IdType  id;
     uint8*      sdu;
 }Can_PduType;
 
 
 typedef struct
 {
-   uint8              ControllerRef;  /*logic controller*/
-   Can_IdType         id;             /*CAN ID*/
-   uint8             hohType;        /*hohType  bit0:0-receive,1-transmit;bit1:0-basic ,1-full*/
-   uint32           filterRef;      /*value of Rx Individual Mask Registers,when BCC=1*/
+   uint8             ControllerRef;  /* logic controller channel */
+   Can_IdType        id;             /* CAN ID */
+   uint8             hohType;        /* hohType bit0:0-receive,1-transmit; bit1:0-basic,1-full*/
+   uint32            filterRef;      /* value of Receive Mask Registers */
 }Can_HardwareObjectConfigType;
 
 #endif  /* CAN_GENERALTYPES_H */
