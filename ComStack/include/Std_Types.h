@@ -56,11 +56,8 @@ typedef void (*FUNC_PTR)(void);
 *                                 Types
 *******************************************************************************/
 typedef unsigned char       boolean;
-typedef unsigned char         u8;
 typedef unsigned char      uint8;
-typedef unsigned short       u16;
 typedef unsigned short    uint16;
-typedef unsigned long        u32;
 typedef unsigned long     uint32;
 typedef   signed char        si8;
 typedef   signed char      sint8;
@@ -141,3 +138,4 @@ typedef struct
 #define _BIT31 0x80000000UL
 
 #endif  /* _STD_TYPES_H_ */
+

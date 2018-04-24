@@ -16,7 +16,7 @@
 *   Includes
 *******************************************************************************/
 #include "../Can_Driver/Can.h"
-#include "Nm.h"
+//#include "Nm.h"
 
 /*******************************************************************************
 *   Common Macro
@@ -106,7 +106,7 @@ of all ControllerBusOff events from the CAN Driver modules have to be routed via
 /*CANIF548_Conf*/
 #define CANIF_DISPATCH_USERSETWAKEUPEVENT_UL        CANIF_DISPATCH_UL_CDD
 
-#define CANIF_DISPATCH_USERCTRLBUSOFF_DEFINED_NAME  Nm_BusOffIndication(Controller)/*user define*/
+#define CANIF_DISPATCH_USERCTRLBUSOFF_DEFINED_NAME  NULL_PTR           //Nm_BusOffIndication(Controller)/*user define*/
 
 #define CANIF_DISPATCH_USERSETWAKEUPEVENT_DEFINED_NAME /*user define*/
 #endif  /* _CANIF_CFG_H_ */

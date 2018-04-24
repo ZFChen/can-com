@@ -44,11 +44,15 @@
 #define CAN_ID_TYPE_SUPPORT                  CAN_STANDARD_ID_ONLY
 
 #define CAN_USED_CONTROLLER_NUM              1
-#define CAN_USED_HOH_NUM                     (14U)
+#define CAN_USED_HOH_NUM                     (3U)
 
 /*******************************************************************************
 *    Special CanController Configuration
 *******************************************************************************/
+
+/* ·ÖÆµÏµÊý */
+#define CAN_PRESCALER_INIT      0x05     
+#define CAN_FILTER_NUM          0x00
 
 /*******************************************************************************
 *    CanController

@@ -18,181 +18,110 @@
 * Config Parameters
 *******************************************************************************/
 
-//CAN≥ı ºªØ
-//tsjw:÷ÿ–¬Õ¨≤ΩÃ¯‘æ ±º‰µ•‘™.∑∂Œß:1~4; CAN_SJW_1tq  CAN_SJW_2tq  CAN_SJW_3tq  CAN_SJW_4tq
-//tbs2: ±º‰∂Œ2µƒ ±º‰µ•‘™.∑∂Œß:1~8;
-//tbs1: ±º‰∂Œ1µƒ ±º‰µ•‘™.∑∂Œß:1~16;	  CAN_BS1_1tq ~ CAN_BS1_16tq
-//brp :≤®Ãÿ¬ ∑÷∆µ∆˜.∑∂Œß:1~1024;( µº “™º”1,“≤æÕ «1~1024) tq=(brp)*tpclk1
-//◊¢“‚“‘…œ≤Œ ˝»Œ∫Œ“ª∏ˆ∂º≤ªƒ‹…ËŒ™0,∑Ò‘Úª·¬“.
-//≤…—˘µ„=(1+tbs1)/(1+tbs1+tbs2), ≤®Ãÿ¬ =Fpclk1/((tsjw+tbs1+tbs2)*brp);
-//mode:0,∆’Õ®ƒ£ Ω;1,ªÿª∑ƒ£ Ω;
-//Fpclk1µƒ ±÷”‘⁄≥ı ºªØµƒ ±∫Ú…Ë÷√Œ™36M,»Áπ˚…Ë÷√tsjw=1,tbs1=8,tbs2=3,brp=5;
-//‘Ú≤®Ãÿ¬ Œ™:36M/((1+8+3)*5)=500Kbps, ≤…—˘µ„Œ™:75%
+//CANÂàùÂßãÂåñ
+//tsjw:ÈáçÊñ∞ÂêåÊ≠•Ë∑≥Ë∑ÉÊó∂Èó¥ÂçïÂÖÉ.ËåÉÂõ¥:1~4; CAN_SJW_1tq  CAN_SJW_2tq  CAN_SJW_3tq  CAN_SJW_4tq
+//tbs2:Êó∂Èó¥ÊÆµ2ÁöÑÊó∂Èó¥ÂçïÂÖÉ.ËåÉÂõ¥:1~8;
+//tbs1:Êó∂Èó¥ÊÆµ1ÁöÑÊó∂Èó¥ÂçïÂÖÉ.ËåÉÂõ¥:1~16;	  CAN_BS1_1tq ~ CAN_BS1_16tq
+//brp :Ê≥¢ÁâπÁéáÂàÜÈ¢ëÂô®.ËåÉÂõ¥:1~1024;(ÂÆûÈôÖË¶ÅÂä†1,‰πüÂ∞±ÊòØ1~1024) tq=(brp)*tpclk1
+//Ê≥®ÊÑè‰ª•‰∏äÂèÇÊï∞‰ªª‰Ωï‰∏Ä‰∏™ÈÉΩ‰∏çËÉΩËÆæ‰∏∫0,Âê¶Âàô‰ºö‰π±.
+//ÈááÊ†∑ÁÇπ=(1+tbs1)/(1+tbs1+tbs2), Ê≥¢ÁâπÁéá=Fpclk1/((tsjw+tbs1+tbs2)*brp);
+//mode:0,ÊôÆÈÄöÊ®°Âºè;1,ÂõûÁéØÊ®°Âºè;
+//Fpclk1ÁöÑÊó∂ÈíüÂú®ÂàùÂßãÂåñÁöÑÊó∂ÂÄôËÆæÁΩÆ‰∏∫36M,Â¶ÇÊûúËÆæÁΩÆtsjw=1,tbs1=8,tbs2=3,brp=5;
+//ÂàôÊ≥¢ÁâπÁéá‰∏∫:36M/((1+8+3)*5)=500Kbps, ÈááÊ†∑ÁÇπ‰∏∫:75%
 
-/* ∑÷∆µœµ ˝ */
-#define CAN_PRESCALER_INIT      0x05     
-#define CAN_FILTER_NUM          0x00
+const uint8  CanControllerIDtoPhys[CAN_USED_CONTROLLER_NUM]=
 
-const uint8 CanControllerIDtoPhys[CAN_USED_CONTROLLER_NUM] =
 {
-    #if (CAN_USED_CONTROLLER_NUM >= 1)
-        0,
-    #endif
+   #if (CAN_USED_CONTROLLER_NUM >= 1)
+
+0,
+
+  #endif
 };
 
-
-const Can_RegInitType CanRegInit[CAN_USED_CONTROLLER_NUM]=
+const Can_RegInitType  CanRegInit[CAN_USED_CONTROLLER_NUM]=
 {
-    #if (CAN_USED_CONTROLLER_NUM >= 1)
-    {
-		CAN_PRESCALER_INIT,	    /*CAN_Prescaler */
-		CAN_Mode_LoopBack, 		/*CAN_Mode */
-		CAN_SJW_1tq,			/*CAN_SJW */
-		CAN_BS1_8tq,			/*CAN_BS1 */
-		CAN_BS2_3tq,			/* CAN_BS2 */
-		DISABLE,  /* CAN_TTCM */
-		DISABLE,  /* CAN_ABOM */
- 		DISABLE,  /* CAN_AWUM */
-		ENABLE,   /* CAN_NART */
-		DISABLE,  /* CAN_RFLM */	
-		DISABLE   /* CAN_TXFP */
-    },
-    #endif  /* #if (CAN_USED_CONTROLLER_NUM >=1) */
- };
 
-/* “ª∏ˆHardwareObject(HOH)∂‘”¶“ªÃıCAN±®Œƒ */
-const Can_HardwareObjectConfigType CanHardwareObjectConfig[CAN_USED_HOH_NUM]=
+   #if (CAN_USED_CONTROLLER_NUM >= 1)
+   {
+      CAN0_CTRLR_INIT_VALUE,
+      CAN0_IF1CMSK_TX_VALUE,
+      CAN0_IF1MCTR_TX_VALUE_PIX,
+      CAN0_IF2CMSK_INIT_VALUE,
+      CAN0_IF2MCTR_INIT_VALUE,
+           
+      0xFFFC0000U,      
+      0x80080000U,       
+      CAN0_BTR_VALUE,                 
+      CAN0_BRPER_VALUE,         
+   },
+   #endif
+} ;
+
+/*
+‰∏ÄÂÖ±3‰∏™HOH(Hardware Object Handle)
+2‰∏™HRH(Hardware Receive Handle)
+1‰∏™HTH(Hardware Transmit Handle)
+*/
+const Can_HardwareObjectConfigType   CanHardwareObjectConfig[CAN_USED_HOH_NUM]=
 {
-    /* ¥À¥¶–Ë“™∏˘æ›Õ®–≈ ˝æ›ø‚(.dbcŒƒº˛, “ª∞„”…’˚≥µ≥ß…Ëº∆)¿¥≈‰÷√øÿ÷∆∆˜–Ë“™Ω” ’ƒƒ–©ECUΩ⁄µ„
-       µƒ±®Œƒ£¨“‘º∞◊‘…Ì∑¢ÀÕ±®ŒƒµƒID∫≈. */
-
-    /* CAN0 RX MB */
-
+    /* Rx */
     /*0*/
     {
-        0,
-        0x50,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
+        0,                                 /*logic controller*/
+        0x7C6u,                            /*CAN ID*//*  AC_DiagReq */ /* Physical Address */
+        CAN_MB_RX_MASK|CAN_MB_FULL_MASK,   /*HOHType  bit0:0-receive,1-transmit; bit1:0-basic,1-full */
+        0x1fffffffu                        /* MXTD=0, MDIR=0, RESV=0, R/W=1, MSK0~28=1 */ 
     },
     /*1*/
     {
-        0,
-        0x302,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
+        0,                                /*logic controller*/
+        0x7dfu,                           /*CAN ID*/ /* Func_DiagReq */  /* Function Address */
+        CAN_MB_RX_MASK|CAN_MB_FULL_MASK,  /*HOHType  bit0:0-receive,1-transmit; bit1:0-basic, 1-full */
+        0x1fffffffu                       /*value of Rx Individual Mask Registers,when BCC=1*/
     },
+    
+    /* Tx */   
     /*2*/
     {
-        0,
-        0x330,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*3*/
-    {
-        0,
-        0x340,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*4*/
-    {
-        0,
-        0x341,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*5*/
-    {
-        0,
-        0x360,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*6*/
-    {
-        0,
-        0x365,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*7*/
-    {
-        0,
-        0x394,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*8*/
-    {
-        0,
-        0x6ed,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*9*/
-    {
-        0,
-        0x726,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /*10*/
-    {
-        0,
-        0x7df,
-        CAN_HOH_RX_MASK|CAN_HOH_FULL_MASK,
-        0x9fffffffUL
-    },
-    /* CAN0 TX MB */
-   /*11*/
-    {
-        0,
-        0x378,
-        CAN_HOH_TX_MASK,
-        0x1fffffffUL,
-    },
-   /*12*/
-    {
-        0,
-        0x6ee,
-        CAN_HOH_TX_MASK,
-        0x1fffffffUL,
-    },
-   /*13*/
-    {
-        0,
-        0x7a6,
-        CAN_HOH_TX_MASK,
-        0x1fffffffUL,
-    },
+        0,                     /*logic controller*/
+        0x7ceu,                /*CAN ID*//* AC_DiagResp */  /* Response */
+        CAN_MB_TX_MASK,        /*hohType  bit0:0-receive,1-transmit; bit1:0-basic,1-full */
+        0xffffffffu            /*value of Rx Individual Mask Registers,when BCC=1*/
+    }     
+
+};  
+
+/* ËøôÈáåÁöÑMBÊåáÁöÑÊòØ Message Buffer, ‰πüÂ∞±ÊòØ Ê∂àÊÅØÁºìÂ≠ò */
+/* ÊåâÁÖß‰∏ãÈù¢ÁöÑÈÖçÁΩÆ,ÂØπ‰∫é1~6Âè∑MB(Message Object)ÔºåÊò†Â∞ÑÂÖ≥Á≥ªÂ¶Ç‰∏ã:
+   HRH: Â∫èÂè∑ËåÉÂõ¥ 1~2, ÂÖ±2‰∏™
+   HTH: Â∫èÂè∑ËåÉÂõ¥ 3-6, ÂÖ±1‰∏™
+*/
+const Can_HwHandleType CanRxMBStartNum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
+{
+   1
 };
 
-const Can_HwHandleType CanRxMBStartNum[CAN_USED_CONTROLLER_NUM]=
+const Can_HwHandleType CanRxMBSum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
-    1,
+   2
 };
 
-const Can_HwHandleType CanRxMBSum[CAN_USED_CONTROLLER_NUM]=
+const Can_HwHandleType CanTxMBStartNum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
-    11,
+   3
 };
 
-const Can_HwHandleType CanTxMBStartNum[CAN_USED_CONTROLLER_NUM]=
+const Can_HwHandleType CanTxMBSum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
-    12,
+   1
 };
 
-const Can_HwHandleType CanTxMBSum[CAN_USED_CONTROLLER_NUM]=
+/* HOH ÂàÜÂà´ÂØπÂ∫îÁöÑ HRHÂíåHTH ÁöÑÊ∂àÊÅØÁºìÂ≠òÂ∫èÂè∑ */
+const Can_HwHandleType CanHohStartNum[2*CAN_USED_CONTROLLER_NUM]=/*2*CAN_USED_CONTROLLER_NUM*/
 {
-    3,
-};
-
-const Can_HwHandleType CanHohStartNum[2*CAN_USED_CONTROLLER_NUM]=
-{
-    0,
-    11,
+   0, /* HRH */
+   2  /* HTH */
 };
 
 

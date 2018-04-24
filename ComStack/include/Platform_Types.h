@@ -46,3 +46,4 @@
 #define E_NOT_OK  (1)
 
 #endif  /* _PLATFORM_TYPES_H_ */
+

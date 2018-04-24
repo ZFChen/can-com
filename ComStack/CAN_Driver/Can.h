@@ -22,6 +22,8 @@
 /*CAN435: The Can.h file shall include Can_GeneralTypes.h.*/
 #include "Can_GeneralTypes.h"
 #include "Can_Pl.h"
+#include "../CAN_Interface/CanIf_Type.h"
+
 
 #define CAN_VENDOR_ID             (uint16)(0xFFFFu)  /*Supplier ID */
 #define CAN_MODULE_ID             (uint16)(0x0023u)  /*CanTp Moudle ID */

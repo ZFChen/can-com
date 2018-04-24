@@ -13,6 +13,9 @@
 #define CAN_PL_H
 
 #include "ComStack_Types.h"
+#include "stm32f10x.h"
+#include "stm32f10x_can.h"
+//#include "stm32f10x_map.h"
 
 #define CAN_HARDWARE_TIMEOUT_CHECK  STD_OFF
 
@@ -57,11 +60,13 @@ typedef volatile struct
   #define CAN_FILTER_MAX_NUMBER    28
 #endif /* STM32F10X_CL */ 
 
+#if 0
 typedef volatile struct
 {
   volatile uint32 FR1;
   volatile uint32 FR2;
 } CAN_FilterRegister_TypeDef;
+#endif
 
 typedef volatile struct
 {
@@ -80,6 +85,7 @@ typedef volatile struct
   volatile uint32 FA1R;
 } CAN_FilterConfigRegister_TypeDef;
 
+#if 0
 typedef volatile struct
 {
   volatile uint32 TIR;
@@ -95,6 +101,7 @@ typedef volatile struct
   volatile uint32 RDLR;
   volatile uint32 RDHR;
 } CAN_FIFOMailBox_TypeDef;
+#endif
 
 typedef struct
 {
@@ -146,47 +153,12 @@ typedef struct
 } Can_RegInitType;
 
 
-/* CAN filter init structure definition */
-typedef struct
-{
-  uint16 CAN_FilterIdHigh;         /*!< Specifies the filter identification number (MSBs for a 32-bit
-                                              configuration, first one for a 16-bit configuration).
-                                              This parameter can be a value between 0x0000 and 0xFFFF */
-
-  uint16 CAN_FilterIdLow;          /*!< Specifies the filter identification number (LSBs for a 32-bit
-                                              configuration, second one for a 16-bit configuration).
-                                              This parameter can be a value between 0x0000 and 0xFFFF */
-
-  uint16 CAN_FilterMaskIdHigh;     /*!< Specifies the filter mask number or identification number,
-                                              according to the mode (MSBs for a 32-bit configuration,
-                                              first one for a 16-bit configuration).
-                                              This parameter can be a value between 0x0000 and 0xFFFF */
-
-  uint16 CAN_FilterMaskIdLow;      /*!< Specifies the filter mask number or identification number,
-                                              according to the mode (LSBs for a 32-bit configuration,
-                                              second one for a 16-bit configuration).
-                                              This parameter can be a value between 0x0000 and 0xFFFF */
-
-  uint16 CAN_FilterFIFOAssignment; /*!< Specifies the FIFO (0 or 1) which will be assigned to the filter.
-                                              This parameter can be a value of @ref CAN_filter_FIFO */
-  
-  uint8 CAN_FilterNumber;          /*!< Specifies the filter which will be initialized. It ranges from 0 to 13. */
-
-  uint8 CAN_FilterMode;            /*!< Specifies the filter mode to be initialized.
-                                              This parameter can be a value of @ref CAN_filter_mode */
-
-  uint8 CAN_FilterScale;           /*!< Specifies the filter scale.
-                                              This parameter can be a value of @ref CAN_filter_scale */
-
-  FunctionalState CAN_FilterActivation; /*!< Enable or disable the filter.
-                                              This parameter can be set either to ENABLE or DISABLE. */
-} CAN_FilterInitTypeDef;
-
 typedef struct
 {
     uint32       oldCanMCR; 
 } Can_OldIERType;
 
+#if 0
 typedef struct
 {
   vuint32 MCR;
@@ -212,6 +184,7 @@ typedef struct
   si32  RESERVED5[8];
   CAN_FilterRegister_TypeDef sFilterRegister[14];
 } CAN_TypeDef;
+#endif
 
 /**********************************************************************************************************************
 *  Symbol definitions
@@ -252,7 +225,7 @@ typedef struct
 #define CAN_TXMAILBOX_2                   ((uint8)0x02) 
 
 #define CAN_MODE_MASK              ((uint32) 0x00000003)
-
+#if 0
 /* Transmit Flags */
 #define CAN_FLAG_RQCP0             ((uint32)0x38000001) /*!< Request MailBox0 Flag */
 #define CAN_FLAG_RQCP1             ((uint32)0x38000100) /*!< Request MailBox1 Flag */
@@ -336,7 +309,6 @@ typedef struct
 
 #define IS_CAN_BS1(BS1) ((BS1) <= CAN_BS1_16tq)
 
-
 /**  CAN_time_quantum_in_bit_segment_2  **/
 
 #define CAN_BS2_1tq                 ((uint8)0x00)  /*!< 1 time quantum */
@@ -349,10 +321,11 @@ typedef struct
 #define CAN_BS2_8tq                 ((uint8)0x07)  /*!< 8 time quantum */
 
 #define IS_CAN_BS2(BS2)    ((BS2) <= CAN_BS2_8tq)
+#endif
 
 
 /* Peripheral memory map */
-#define PERIPH_BASE           ((u32)0x40000000)
+//#define PERIPH_BASE           ((u32)0x40000000)
 
 #define APB1PERIPH_BASE       PERIPH_BASE
 #define APB2PERIPH_BASE       (PERIPH_BASE + 0x10000)
@@ -452,6 +425,7 @@ typedef struct
 
 
 /* Bitmask of CAN_MCR(CAN master control register) */
+#if 0
 #define CAN_MCR_INRQ                                   ((uint32)0x00000001)   /* Initialization request  */ 
 #define CAN_MCR_SLEEP                                  ((uint32)0x00000002)   /* Sleep mode request  */ 
 #define CAN_MCR_TXFP                                   ((uint32)0x00000004)   /* Transmit FIFO priority */ 
@@ -462,7 +436,6 @@ typedef struct
 #define CAN_MCR_TTCM                                   ((uint32)0x00000080)   /*  Time triggered communication mode */ 
 #define CAN_MCR_RESET                                  ((uint32)0x00008000)   /*  bxCAN software master reset */ 
 #define CAN_MCR_DBF                                    ((uint32)0x00010000)   /*  Debug freeze  */ 
-
     
 /* Bitmask of MSR(CAN master status register) */
 #define CAN_MSR_INAK                                  ((uint32)0x00000001)     /* Initialization acknowledge */  
@@ -490,6 +463,7 @@ typedef struct
 #define CAN_IER_ERRIE                                 ((uint32)0x00008000)     /* Error interrupt enable */  
 #define CAN_IER_WKUIE                                 ((uint32)0x00010000)     /* Wakeup interrupt enable */  
 #define CAN_IER_SLKIE                                 ((uint32)0x00020000)     /* Sleep interrupt enable */  
+#endif
 
 /*******************************************************************/
 #define CAN_CONTROLLER_BAUD_RATE
@@ -554,7 +528,7 @@ typedef struct
 
 
 /*HOH related macros*/
-#define CAN_CONCTROLLER_MB_NUM             (32U)
+#define CAN_CONCTROLLER_MB_NUM             (6U)
 
 #define CAN_NOT_MATCH                      (0U)
 #define CAN_MATCH                          (1U)
