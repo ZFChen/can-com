@@ -9,6 +9,7 @@
 ********************************************************************************
 * END_FILE_HDR*/
 
+
 #ifndef CAN_H
 #define CAN_H
 
@@ -74,6 +75,7 @@ exceptions depending on its configuration (development/production)*/
 *   Declarations  of variable
 *********************************************************************************************************************/
 extern const  uint8  CanControllerIDtoPhys[];
+extern const  Can_RegInitType  CanRegInit[];
 extern const  Can_HardwareObjectConfigType   CanHardwareObjectConfig[];
 
 extern const  Can_HwHandleType CanControllerIDtoHRH[];

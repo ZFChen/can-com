@@ -9,6 +9,7 @@
 ********************************************************************************
 * END_FILE_HDR*/
 
+
 #ifndef CAN_H
 #define CAN_H
 
@@ -74,6 +75,7 @@ exceptions depending on its configuration (development/production)*/
 *   Declarations  of variable
 *********************************************************************************************************************/
 extern const  uint8  CanControllerIDtoPhys[];
+extern const  Can_RegInitType  CanRegInit[];
 extern const  Can_HardwareObjectConfigType   CanHardwareObjectConfig[];
 
 extern const  Can_HwHandleType CanControllerIDtoHRH[];
@@ -85,20 +87,80 @@ extern const  Can_HwHandleType CanTxMBStartNum[];
 extern const  Can_HwHandleType CanTxMBSum[];
 extern const  Can_HwHandleType CanHohStartNum[];
 
+
 /**********************************************************************************************************************
 *  Declarations  of services
 *********************************************************************************************************************/
+/*
+  Services affecting the complete hardware unit
+*/
+#if(CAN_VERSION_INFO_API == STD_ON)
+FUNC(void,CAN_PUBLIC_CODE) Can_GetVersionInfo
+(
+    P2VAR(Std_VersionInfo_Type,AUTOMATIC,CAN_APPL_DATA) VersionInfo
+);
+#endif
 
-/** \brief Initialize the can module.*/
-extern bl_Return_t Can_Init(void);
-/** \brief Deinitialize the can module.*/
-extern void Can_Deinit(void);
-/** \brief Transmit the data to can bus.*/
-extern bl_Return_t Can_Write(const bl_CanTxPdu_t *pdu);
-/** \brief Receive the data from can bus.*/
-extern bl_Return_t Can_Read(bl_CanRxPdu_t *pdu);
-/** \brief Check can controller busoff.*/
-extern void Can_BusOff_Check(void);
+extern void Can_Init(void);
 
+/*
+  Services affecting one single CAN Controller
+*/
+extern void Can_InitController(
+                         uint8 Controller,
+                         const Can_ControllerBaudrateConfigType* Config
+                       )  ;
+
+extern Can_ReturnType Can_SetControllerMode(
+                                    uint8 Controller,
+                                    Can_StateTransitionType Transition
+                                    );
+
+extern void Can_DisableControllerInterrupts(
+                                     uint8 Controller
+                                    ) ;
+
+extern void Can_EnableControllerInterrupts(
+                                    uint8 Controller
+                                    ) ;
+
+extern void Can_DisableGlobalInterrupt(void);
+
+extern void Can_EnableGlobalInterrupt(void);
+
+/*
+  Services affecting a Hardware Handle
+*/
+
+extern Can_ReturnType Can_Write(
+                         Can_HwHandleType Hth,
+                         const Can_PduType* PduInfo
+                        );
+/*
+  Scheduled functions
+*/
+extern void Can_MainFunction_Write(void);
+
+extern void Can_MainFunction_Read(void);
+
+extern void Can_MainFunction_BusOff(void);
+
+extern void Can_MainFunction_Mode(void);
+
+extern  void CAN_InterruptHandler(void);
+
+
+/*
+Application Call back function
+*/
+#if (STD_ON == CAN_HARDWARE_TIMEOUT_CHECK)
+
+  void ApplTimerBegin(uint8 LoopReason);
+
+  Can_ReturnType ApplTimerOutCheck(uint8 LoopReason);
+
+  void ApplTimerEnd(uint8 LoopReason);
+
+#endif
 
 #endif /* CAN_H */

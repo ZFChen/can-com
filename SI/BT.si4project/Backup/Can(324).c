@@ -1,22 +1,56 @@
 /*  BEGIN_FILE_HDR
+***********************************************************************************************
+*   NOTICE                              
+*   This software is the property of HiRain Technologies. Any information contained in this 
+*   doc should not be reproduced, or used, or disclosed without the written authorization from 
+*   HiRain Technologies.
+***********************************************************************************************
+*   File Name       : Can.c
+***********************************************************************************************
+*   Project/Product : SDK_MB96610_CanDrv
+*   Title           : CAN Driver module Source File
+*   Author          : ZhangLina
+***********************************************************************************************
+*   Description     : Implementation of CAN Driver                        
+*
+***********************************************************************************************
+*   Limitations     : only used for Fujitsu MB96610 CAN
+*
+***********************************************************************************************
 *
 ***********************************************************************************************
 *   Revision History:
 * 
 *   Version     Date          Initials      CR#          Descriptions
-*   ---------   ----------    ------------  ----------   --------------                                          
+*   ---------   ----------    ------------  ----------   ---------------
+*   1.0         2012/3/31      HeYang       N/A          Original
+*   2.0         2012/5/17      ZhanLina     N/A          Changed for MB96610
+*   2.1         2012/10/19     ShenZhichun  N/A          Modified "Can_InitController" and "Can_SetControllerMode"
+*                                                        function for busoff                                                        
 ***********************************************************************************************
 * END_FILE_HDR*/
 
 /**********************************************************************************************
 *  Head file which is included
 ***********************************************************************************************/ 
-
-//#include "bl_system.h"
-#include "Can.h"
+#include "bl_common.h"
+#include "bl_rte.h"
+#include "bl_system.h"
+#include "bl_can.h"
 #include "Can_Pl.h"
-#include "CanIf.h"
-//#include "stm32f10x_can.h"
+#include "bl_can_if.h"
+
+/*CAN389: The implementation of the Can module shall provide the header file
+Can_Cfg.h that shall contain the pre-compile-time configuration parameters.*/
+/*CAN390: The Can module shall include the header file EcuM_Cbk.h, in which the
+callback functions called by the Can module at the Ecu State Manager module are
+declared.*/
+
+
+/*CAN397: The Can module shall include the header file Os.h file. By this inclusion,
+the API to read a free running timer value (GetCounterValue) provided by the system
+service shall be included.*/
+
 
 /**********************************************************************************************
 *  For debug
@@ -285,6 +319,8 @@ bl_Return_t Can_Init(
         /*  HTH, pdu, MB num(receive) */
         Can_MemSet(EmptyFlagForHth, TRUE, CAN_USED_HOH_NUM);
         Can_MemSet(PduIdForHth, 0xff, CAN_USED_HOH_NUM*(sizeof(PduIdType)));  
+        Can_MemSet(CanControllerInterruptCount, 0x00, CAN_USED_CONTROLLER_NUM);
+        Can_MemSet(CanControllerOldInterruptReg, 0x00, CAN_USED_CONTROLLER_NUM*sizeof(Can_OldIERType));      
 
         phyController = CanControllerIDtoPhys[Controller];   
         rxMBstart = CAN_RX_MB_START(Controller);
@@ -309,7 +345,7 @@ bl_Return_t Can_Init(
             }else
             {
                 /* idle buffer */
-                //IF2CREQ(phyController) = MBNum;
+                 IF2CREQ(phyController) = MBNum;
             }
         }
 
@@ -360,9 +396,53 @@ void Can_Deinit(
 } 
 /* END OF Can_Deinit */
 
+
+/**********************************************************************************************
+*  Services affecting one single CAN Controller 
+***********************************************************************************************/ 
+
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
+CAN229:
+Service name:       Can_InitController   
+Syntax:             void Can_InitController( 
+                                            bl_u8_t Controller, 
+                                            const Can_ControllerBaudrateConfigType* Config 
+                                            )
+Service ID[hex]:    0x02   
+Sync/Async:         Synchronous  
+Reentrancy:         Non Reentrant 
+Parameters (in):    Controller:  CAN Controller to be initialized 
+                    Config
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function initializes the bit timing related settings of a CAN Controller.   
+***********************************************************************************************
+ END_FUNCTION_HDR*/ 
+void Can_InitController( 
+                         bl_u8_t Controller, 
+                         const Can_ControllerBaudrateConfigType* Config
+                        )
+{     
+
+} 
+
 /* BEGIN_FUNCTION_HDR
 ***********************************************************************************************
 
+Service name:       CAN_Controller_Tx_handler   
+Syntax:             void CAN_Controller_Tx_handler(
+                                                   bl_u8_t Controller
+                                                  )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function is used for handle the success TX confirmation
 ***********************************************************************************************
  END_FUNCTION_HDR*/
 static bl_u8_t Can_CheckStatus = 0;
@@ -380,14 +460,15 @@ bl_Return_t Can_CheckTxStatus(bl_ComIfHandle_t handle)
     {   
        Hth = Can_MBNumToHth(Controller, MBNum);     /* Hth = 3+2-3 = 2 */  
        MsgBuffer = ((bl_u32_t) 0x01) << (MBNum-1);    
-       if (EmptyFlagForHth[Hth]==FALSE)
+       if ((EmptyFlagForHth[Hth]==FALSE) && ((TREQR(phyController)  & MsgBuffer) == 0 ) )        
        {       
+            /*CAN_TxObject_handler(Controller, MBNum);*/
             ret = BL_ERR_OK;
             Can_CheckStatus++;
        }      
        else
        {
-            /*do nothing*/
+            ;/*do nothing*/
        }            
     }
     return ret;
@@ -417,7 +498,6 @@ Description:        This function is used for read
     bl_u8_t Controller;    
     bl_u8_t phyController;
     CanRxMsg RxMessage;
-	bl_u16_t i;
 	
 	/* 查询:是否有接收到新数据 (NEWDT register: new data has been received)
 	   遍历所有已配置(设置为接收)的MB, 查询(MB)是否有效 */
@@ -441,7 +521,7 @@ Description:        This function is used for read
 				else
 					pdu->canId = RxMessage.ExtId;
 				
-				pdu->dlc = RxMessage.DLC;
+				pdu->dlc = RxMessage.DLC
 				ret = BL_ERR_OK;
                 break;
             }
@@ -449,6 +529,7 @@ Description:        This function is used for read
     }
     return(ret);
 }
+
 
 
 /**********************************************************************************************
@@ -516,7 +597,7 @@ bl_Return_t Can_Write(const bl_CanTxPdu_t *pdu)
 	  {
 		  Dlc = 8;
 	  }
-	  TxMessage.DLC = Dlc;
+	  TxMessage.DLC=len;
 
 	  /*Data*/
 	  for(SduNum=0; SduNum<Dlc; SduNum++)
@@ -557,7 +638,17 @@ void Can_DisableControllerInterrupts(
                                      bl_u8_t Controller 
                                     ) 
 {
-
+   bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+   if(0 == (CanControllerInterruptCount[CAN_CONTROLLER_ID]))
+   {
+      CanControllerOldInterruptReg[CAN_CONTROLLER_ID].oldCanCTRLR = (CTRLR(phyController)&CTRLR_INTERUPT);
+      CTRLR(phyController) &= ~(CTRLR_IE | CTRLR_SIE| CTRLR_EIE); 
+   }
+   (CanControllerInterruptCount[CAN_CONTROLLER_ID])++; 
+   if(CanControllerInterruptCount[CAN_CONTROLLER_ID]>250)
+   {
+      CanControllerInterruptCount[CAN_CONTROLLER_ID] = 250;
+   }
 }
 
 /* BEGIN_FUNCTION_HDR
@@ -581,7 +672,15 @@ void Can_EnableControllerInterrupts(
                                      bl_u8_t Controller 
                                     ) 
 {
-
+    bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+    if(CanControllerInterruptCount[CAN_CONTROLLER_ID]>0)
+    {
+       (CanControllerInterruptCount[CAN_CONTROLLER_ID])--;
+    }
+    if(0 == (CanControllerInterruptCount[CAN_CONTROLLER_ID]))
+    {
+       CTRLR(phyController) = CanControllerOldInterruptReg[CAN_CONTROLLER_ID].oldCanCTRLR; 
+    }
 }
 
 
@@ -639,7 +738,7 @@ Can_ReturnType Can_SetControllerMode(
                       
                    }
 
-				   #if 0
+                  
                    CTRLR(phyController) &= ~(CTRLR_INIT);
                    /* Wait */
                    do
@@ -652,7 +751,8 @@ Can_ReturnType Can_SetControllerMode(
                       #if (CAN_DEV_ERROR_DETECT == STD_ON )
                           Can_State[Controller] = CAN_STARTED;   
                       #endif       
-				   #endif
+                 
+                  
              #if (CAN_DEV_ERROR_DETECT == STD_ON )
                  }
              #endif

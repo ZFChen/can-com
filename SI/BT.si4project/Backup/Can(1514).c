@@ -16,7 +16,7 @@
 #include "Can.h"
 #include "Can_Pl.h"
 #include "CanIf.h"
-//#include "stm32f10x_can.h"
+#include "stm32f10x_can.h"
 
 /**********************************************************************************************
 *  For debug
@@ -360,9 +360,53 @@ void Can_Deinit(
 } 
 /* END OF Can_Deinit */
 
+
+/**********************************************************************************************
+*  Services affecting one single CAN Controller 
+***********************************************************************************************/ 
+
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
+CAN229:
+Service name:       Can_InitController   
+Syntax:             void Can_InitController( 
+                                            bl_u8_t Controller, 
+                                            const Can_ControllerBaudrateConfigType* Config 
+                                            )
+Service ID[hex]:    0x02   
+Sync/Async:         Synchronous  
+Reentrancy:         Non Reentrant 
+Parameters (in):    Controller:  CAN Controller to be initialized 
+                    Config
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function initializes the bit timing related settings of a CAN Controller.   
+***********************************************************************************************
+ END_FUNCTION_HDR*/ 
+void Can_InitController( 
+                         bl_u8_t Controller, 
+                         const Can_ControllerBaudrateConfigType* Config
+                        )
+{     
+
+} 
+
 /* BEGIN_FUNCTION_HDR
 ***********************************************************************************************
 
+Service name:       CAN_Controller_Tx_handler   
+Syntax:             void CAN_Controller_Tx_handler(
+                                                   bl_u8_t Controller
+                                                  )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function is used for handle the success TX confirmation
 ***********************************************************************************************
  END_FUNCTION_HDR*/
 static bl_u8_t Can_CheckStatus = 0;
@@ -387,7 +431,7 @@ bl_Return_t Can_CheckTxStatus(bl_ComIfHandle_t handle)
        }      
        else
        {
-            /*do nothing*/
+            ;/*do nothing*/
        }            
     }
     return ret;
@@ -516,7 +560,7 @@ bl_Return_t Can_Write(const bl_CanTxPdu_t *pdu)
 	  {
 		  Dlc = 8;
 	  }
-	  TxMessage.DLC = Dlc;
+	  TxMessage.DLC=len;
 
 	  /*Data*/
 	  for(SduNum=0; SduNum<Dlc; SduNum++)
@@ -557,7 +601,17 @@ void Can_DisableControllerInterrupts(
                                      bl_u8_t Controller 
                                     ) 
 {
-
+   bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+   if(0 == (CanControllerInterruptCount[CAN_CONTROLLER_ID]))
+   {
+      CanControllerOldInterruptReg[CAN_CONTROLLER_ID].oldCanCTRLR = (CTRLR(phyController)&CTRLR_INTERUPT);
+      CTRLR(phyController) &= ~(CTRLR_IE | CTRLR_SIE| CTRLR_EIE); 
+   }
+   (CanControllerInterruptCount[CAN_CONTROLLER_ID])++; 
+   if(CanControllerInterruptCount[CAN_CONTROLLER_ID]>250)
+   {
+      CanControllerInterruptCount[CAN_CONTROLLER_ID] = 250;
+   }
 }
 
 /* BEGIN_FUNCTION_HDR
@@ -581,7 +635,15 @@ void Can_EnableControllerInterrupts(
                                      bl_u8_t Controller 
                                     ) 
 {
-
+    bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+    if(CanControllerInterruptCount[CAN_CONTROLLER_ID]>0)
+    {
+       (CanControllerInterruptCount[CAN_CONTROLLER_ID])--;
+    }
+    if(0 == (CanControllerInterruptCount[CAN_CONTROLLER_ID]))
+    {
+       CTRLR(phyController) = CanControllerOldInterruptReg[CAN_CONTROLLER_ID].oldCanCTRLR; 
+    }
 }
 
 
@@ -639,7 +701,7 @@ Can_ReturnType Can_SetControllerMode(
                       
                    }
 
-				   #if 0
+                  
                    CTRLR(phyController) &= ~(CTRLR_INIT);
                    /* Wait */
                    do
@@ -652,7 +714,8 @@ Can_ReturnType Can_SetControllerMode(
                       #if (CAN_DEV_ERROR_DETECT == STD_ON )
                           Can_State[Controller] = CAN_STARTED;   
                       #endif       
-				   #endif
+                 
+                  
              #if (CAN_DEV_ERROR_DETECT == STD_ON )
                  }
              #endif

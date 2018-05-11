@@ -57,6 +57,7 @@ typedef enum
     CAN_BUSY
 }Can_ReturnType;
 
+
 #if (CAN_DEV_ERROR_DETECT == STD_ON )
   typedef enum
   {
@@ -66,12 +67,6 @@ typedef enum
       CAN_SLEEP
   }Can_StateType;
 #endif
-
-typedef enum
-{
-    CanDrv_UnInit = 0,
-    CanDrv_Init = 1,
-}CanDrv_StateType;
 
 
 /* CAN417:

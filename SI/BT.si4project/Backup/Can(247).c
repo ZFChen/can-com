@@ -1,22 +1,56 @@
 /*  BEGIN_FILE_HDR
+***********************************************************************************************
+*   NOTICE                              
+*   This software is the property of HiRain Technologies. Any information contained in this 
+*   doc should not be reproduced, or used, or disclosed without the written authorization from 
+*   HiRain Technologies.
+***********************************************************************************************
+*   File Name       : Can.c
+***********************************************************************************************
+*   Project/Product : SDK_MB96610_CanDrv
+*   Title           : CAN Driver module Source File
+*   Author          : ZhangLina
+***********************************************************************************************
+*   Description     : Implementation of CAN Driver                        
+*
+***********************************************************************************************
+*   Limitations     : only used for Fujitsu MB96610 CAN
+*
+***********************************************************************************************
 *
 ***********************************************************************************************
 *   Revision History:
 * 
 *   Version     Date          Initials      CR#          Descriptions
-*   ---------   ----------    ------------  ----------   --------------                                          
+*   ---------   ----------    ------------  ----------   ---------------
+*   1.0         2012/3/31      HeYang       N/A          Original
+*   2.0         2012/5/17      ZhanLina     N/A          Changed for MB96610
+*   2.1         2012/10/19     ShenZhichun  N/A          Modified "Can_InitController" and "Can_SetControllerMode"
+*                                                        function for busoff                                                        
 ***********************************************************************************************
 * END_FILE_HDR*/
 
 /**********************************************************************************************
 *  Head file which is included
 ***********************************************************************************************/ 
-
-//#include "bl_system.h"
-#include "Can.h"
+#include "bl_common.h"
+#include "bl_rte.h"
+#include "bl_system.h"
+#include "bl_can.h"
 #include "Can_Pl.h"
-#include "CanIf.h"
-//#include "stm32f10x_can.h"
+#include "bl_can_if.h"
+
+/*CAN389: The implementation of the Can module shall provide the header file
+Can_Cfg.h that shall contain the pre-compile-time configuration parameters.*/
+/*CAN390: The Can module shall include the header file EcuM_Cbk.h, in which the
+callback functions called by the Can module at the Ecu State Manager module are
+declared.*/
+
+
+/*CAN397: The Can module shall include the header file Os.h file. By this inclusion,
+the API to read a free running timer value (GetCounterValue) provided by the system
+service shall be included.*/
+
 
 /**********************************************************************************************
 *  For debug
@@ -60,9 +94,16 @@ module internally, are declared in Can.c
 *   Global data that are only used by the Can module internally
 ***********************************************************************************************/
 static Can_ReturnType Can_SetControllerMode(bl_u8_t Controller,Can_StateTransitionType Transition);
+static uint8 CanGlobalInterruptCount;
+static uint8 CanControllerInterruptCount[CAN_USED_CONTROLLER_NUM];
+static Can_OldIERType  CanControllerOldInterruptReg[CAN_USED_CONTROLLER_NUM];
 
 static bl_u8_t EmptyFlagForHth[CAN_USED_HOH_NUM];
 static PduIdType  PduIdForHth[CAN_USED_HOH_NUM];
+
+#if (STD_ON ==CAN_HW_TRANSMIT_CANCELLATION)
+static Can_IdType CanIDForHth[CAN_USED_HOH_NUM];    
+#endif
 
 /*CAN0-Control Register Address: 0x700*/
 static bl_u16_t CanBasisAddress[TOTAL_CONTROLLER_NUM]=
@@ -80,6 +121,10 @@ static Can_HwHandleType Can_MBNumToHrh(bl_u8_t Controller,Can_HwHandleType MBNum
 static Can_HwHandleType Can_MBNumToHth(bl_u8_t Controller,Can_HwHandleType MBNum);
 static Can_HwHandleType Can_HthToMBNum(Can_HwHandleType Hth);
  
+static void CAN_Controller_Tx_handler(bl_u8_t Controller);
+static void CAN_Controller_Rx_handler(bl_u8_t Controller);
+static void CAN_RxObject_handler(bl_CanRxPdu_t* pdu,bl_u8_t Controller,bl_u8_t MBNum); 
+static void CAN_TxObject_handler(bl_u8_t Controller,bl_u16_t MBNum);
 static void CAN_Controller_Busoff_handler(bl_u8_t Controller);
 static void Can_DeInit(void);                                     
 /* BEGIN_FUNCTION_HDR
@@ -285,6 +330,8 @@ bl_Return_t Can_Init(
         /*  HTH, pdu, MB num(receive) */
         Can_MemSet(EmptyFlagForHth, TRUE, CAN_USED_HOH_NUM);
         Can_MemSet(PduIdForHth, 0xff, CAN_USED_HOH_NUM*(sizeof(PduIdType)));  
+        Can_MemSet(CanControllerInterruptCount, 0x00, CAN_USED_CONTROLLER_NUM);
+        Can_MemSet(CanControllerOldInterruptReg, 0x00, CAN_USED_CONTROLLER_NUM*sizeof(Can_OldIERType));      
 
         phyController = CanControllerIDtoPhys[Controller];   
         rxMBstart = CAN_RX_MB_START(Controller);
@@ -309,7 +356,7 @@ bl_Return_t Can_Init(
             }else
             {
                 /* idle buffer */
-                //IF2CREQ(phyController) = MBNum;
+                 IF2CREQ(phyController) = MBNum;
             }
         }
 
@@ -360,9 +407,53 @@ void Can_Deinit(
 } 
 /* END OF Can_Deinit */
 
+
+/**********************************************************************************************
+*  Services affecting one single CAN Controller 
+***********************************************************************************************/ 
+
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
+CAN229:
+Service name:       Can_InitController   
+Syntax:             void Can_InitController( 
+                                            bl_u8_t Controller, 
+                                            const Can_ControllerBaudrateConfigType* Config 
+                                            )
+Service ID[hex]:    0x02   
+Sync/Async:         Synchronous  
+Reentrancy:         Non Reentrant 
+Parameters (in):    Controller:  CAN Controller to be initialized 
+                    Config
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function initializes the bit timing related settings of a CAN Controller.   
+***********************************************************************************************
+ END_FUNCTION_HDR*/ 
+void Can_InitController( 
+                         bl_u8_t Controller, 
+                         const Can_ControllerBaudrateConfigType* Config
+                        )
+{     
+
+} 
+
 /* BEGIN_FUNCTION_HDR
 ***********************************************************************************************
 
+Service name:       CAN_Controller_Tx_handler   
+Syntax:             void CAN_Controller_Tx_handler(
+                                                   bl_u8_t Controller
+                                                  )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function is used for handle the success TX confirmation
 ***********************************************************************************************
  END_FUNCTION_HDR*/
 static bl_u8_t Can_CheckStatus = 0;
@@ -375,13 +466,14 @@ bl_Return_t Can_CheckTxStatus(bl_ComIfHandle_t handle)
     bl_u32_t MsgBuffer;  
     bl_Return_t ret = BL_ERR_NOT_OK;
 
-	/* for(MBNum=3; MBNum<4; MBNum++) */
-    for(MBNum=CAN_TX_MB_START(Controller); MBNum<CAN_TX_MB_END(Controller); MBNum++)
+	/* for(MBNum=16; MBNum<17; MBNum++) */
+    for(MBNum=CAN_TX_MB_START(Controller);MBNum<CAN_TX_MB_END(Controller);MBNum++)
     {   
-       Hth = Can_MBNumToHth(Controller, MBNum);     /* Hth = 3+2-3 = 2 */  
+       Hth = Can_MBNumToHth(Controller,MBNum);     /* Hth = 16+2-16 = 2 */  
        MsgBuffer = ((bl_u32_t) 0x01) << (MBNum-1);    
-       if (EmptyFlagForHth[Hth]==FALSE)
+       if ((EmptyFlagForHth[Hth]==FALSE) && ((TREQR(phyController)  & MsgBuffer) == 0 ) )        
        {       
+            CAN_TxObject_handler(Controller, MBNum);
             ret = BL_ERR_OK;
             Can_CheckStatus++;
        }      
@@ -417,7 +509,6 @@ Description:        This function is used for read
     bl_u8_t Controller;    
     bl_u8_t phyController;
     CanRxMsg RxMessage;
-	bl_u16_t i;
 	
 	/* 查询:是否有接收到新数据 (NEWDT register: new data has been received)
 	   遍历所有已配置(设置为接收)的MB, 查询(MB)是否有效 */
@@ -441,7 +532,7 @@ Description:        This function is used for read
 				else
 					pdu->canId = RxMessage.ExtId;
 				
-				pdu->dlc = RxMessage.DLC;
+				pdu->dlc = RxMessage.DLC
 				ret = BL_ERR_OK;
                 break;
             }
@@ -451,89 +542,124 @@ Description:        This function is used for read
 }
 
 
-/**********************************************************************************************
-*	Services affecting a Hardware Handle 
-***********************************************************************************************/
 
 /* BEGIN_FUNCTION_HDR
 ***********************************************************************************************
-CAN233: 
-Service name:		 Can_Write	   
-Syntax:			 Can_ReturnType Can_Write( 
-					 const bl_CanTxPdu_t* PduInfo 
-					 )
-Service ID[hex]:	 0x06	
-Sync/Async:		 Synchronous   
-Reentrancy:		 Reentrant (thread-safe) 
-Parameters (in):	 Hth:  information which HW-transmit handle shall be used for transmit. 
-					   Implicitly this is also the information about the Controller to use 
-					   because the Hth numbers are unique inside one hardware unit.  
-				 PduInfo:  Pointer to SDU user memory, DLC and Identifier.						
+
+Service name:       CAN_TxObject_handler   
+Syntax:             void CAN_TxObject_handler(
+                                                   bl_u8_t Controller
+                                                  )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
 Parameters (inout): None 
-Parameters (out):	 None  
-Return value:		 Can_ReturnType  CAN_OK: Write command has been accepted 
-								 CAN_NOT_OK: development error occurred 
-								 CAN_BUSY: No TX hardware buffer available or pre-emptive call 
-										   of Can_Write that can't be implemented re-entrant 
-Description:		 -- 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function is used for handle the success TX confirmation
 ***********************************************************************************************
-END_FUNCTION_HDR*/
-bl_Return_t Can_Write(const bl_CanTxPdu_t *pdu)
-{
-   bl_Return_t ret = BL_ERR_OK;
-   bl_u8_t hthmatchflag = CAN_NOT_MATCH;
-   bl_u8_t Dlc = pdu->dlc;
-   Can_HwHandleType Hth = 2;
-   Can_HwHandleType MBNum = 0;	 
-   bl_ComIfHandle_t Controller = 0;
-   CanTxMsg TxMessage;
-   
-   bl_u8_t phyController = CanControllerIDtoPhys[Controller];
-   bl_u8_t SduNum = 0;
-   
-   MBNum = Can_HthToMBNum(Hth);
-   if((TRUE == EmptyFlagForHth[Hth]))
-   {
-	  hthmatchflag = CAN_MATCH;
-   }
-   if(CAN_MATCH==hthmatchflag)/*Hth is empty*/
-   {	 
-     #if (STD_ON ==CAN_HW_TRANSMIT_CANCELLATION)
-		  CanIDForHth[Hth]=pdu->canId;
-     #endif
+ END_FUNCTION_HDR*/
+static void CAN_TxObject_handler(
+                                      bl_u8_t Controller,
+                                      bl_u16_t MBNum
+                               )
+{           
+        bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+        Can_HwHandleType HthIndex =Can_MBNumToHth(CAN_CONTROLLER_ID,MBNum);
+        bl_u32_t  MsgBuffer;  
+                  
+      MsgBuffer = ((bl_u32_t)0x01) << (MBNum-1);
+      if( ((INTPND(phyController) & MsgBuffer) != 0)) 
+        {   
+            IF1MCTR(phyController) = 0x0888;/*NEWDAT=0 MSGLST=0 INTPND=0 UMASK=0 TXIE=1 RXIE=0 RMTEN=0 TXRQST=0 EOB=1 DLC=8    */
+            IF1CMSK(phyController) = 0x0090;/*WRRD=1 MASK=0 ARB=0 CONTROL=1 CIP=0 TXREQ=0 DTAA/B=0    */                    
+            IF1CREQ(phyController) = MBNum;/*IF->RAM*/
+        } 
+        EmptyFlagForHth[HthIndex] = TRUE;
+        /*the message was sented */
+        STATR(phyController) &= (~(STATR_TXOK)); 
+} 
 
-	 #if (CAN_ID_TYPE_SUPPORT == STANDARD_ID_ONLY)
-	  TxMessage.StdId=pdu->canId;
-	  TxMessage.IDE = 0;		  // 使用标准标识符
-	 #elif (CAN_ID_TYPE_SUPPORT == EXTERNED_ID_ONLY)
-	  TxMessage.ExtId=pdu->canId;
-	  TxMessage.IDE = 1;		  // 使用扩展标识符
-	 #endif
 
-	  TxMessage.RTR=0;			  // 消息类型为数据帧
-	  
-	  if(Dlc>8)
-	  {
-		  Dlc = 8;
-	  }
-	  TxMessage.DLC = Dlc;
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
 
-	  /*Data*/
-	  for(SduNum=0; SduNum<Dlc; SduNum++)
-	  {
-		  TxMessage.Data[SduNum] = *(pdu->frame+SduNum);
-	  }
+Service name:       CAN_RxObject_handler   
+Syntax:             static void CAN_RxObject_handler(
+                                      bl_CanRxPdu_t* pdu,
+                                      bl_u8_t Controller,
+                                      bl_u8_t MBNum
+                                )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function is used for handle the success RX indication
+***********************************************************************************************
+ END_FUNCTION_HDR*/ 
+static void CAN_RxObject_handler(
+                                      bl_CanRxPdu_t* pdu,
+                                      bl_u8_t Controller,
+                                      bl_u8_t MBNum
+                                )
+{ 
+     Can_IdType CanID = 0;
+     bl_u8_t  dlc = 0;
+     bl_u8_t  i = 0;
+     bl_u16_t temprxbuffer[4];
+     bl_u8_t temprxdata[8];
+     /*bl_u8_t * prxdata = NULL;*/
+     bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+     /*Can_HwHandleType hrh= Can_MBNumToHrh(Controller,MBNum); */
 
-	  CAN_Transmit(CAN1, &TxMessage);
-	  EmptyFlagForHth[Hth] = FALSE;   
-   }
-   else/*Hth is full*/
-   {
-	  ret = BL_ERR_NOT_OK;		  
-   }
-   return ret;	  
+     /* 传入的参数:MBNum 是接收消息缓存的编号(CanRxMBStartNum ~ CanRxMBStartNum+CanRxMBSum) */
+     /* MBNum - CanRxMBStartNum, 也就是此消息对象在接收buffer中的相对编号(0~CanRxMBSum) */
+     pdu->handle = MBNum - CanRxMBStartNum[Controller];  /* value range: 0~CanRxMBSum, (0~1) */
+
+    /*fetch data from msg RAM*/                
+    IF2CMSK(phyController) = 0x007F;       /*WR/RD=0 Mask=1 Arb=1 Control=1 CIP=1 TxRqst/NewDat=1 DataA=1 DataB=1*/                
+    IF2CREQ(phyController) = MBNum;        /*transmit msgRAM to IF*/
+    if( (IF2MCTR(phyController) & ((bl_u16_t)0x4000)) ==((bl_u16_t)0x4000) )/*If there is data lost*/
+    {
+        IF2MCTR(phyController) = 0x1488;/*NewDat=0 MSGLST=0 INTPND=0 UMSK=1 TXIE=0    RXIE=1 RMTEN=0 TXRQST=0 EOB=1*/
+        IF2CMSK(phyController) = 0x0090;/*WRRD=1 CONTROL=1 other=0 for clear MSGLST*/
+        IF2CREQ(phyController) = MBNum;
+    }
+	
+    /*If there is no data lost*/           
+    if(IF2ARB(phyController) & IFxARB_XTD == IFxARB_XTD)/* 判断是否是扩展ID(XTD=1) */
+    {
+        CanID= (IF2ARB(phyController) & IFxARB_ID_MASK);  //获取扩展CAN ID
+    }else
+    {
+     /* ID28 - ID0 29-bit Identifier  ("Extended Frame") 
+        ID28 - ID18 11-bit Identifier ("Standard Frame") */
+        CanID= (IF2ARB(phyController) & IFxARB_ID_MASK) >> 18; //获取标准CAN ID
+    }
+    dlc= (bl_u8_t)(IF2MCTR(phyController) & IFxMCTR_DLC); //获取数据长度 
+
+	/* 填充PDU的长度和CAN ID */
+    pdu->dlc = dlc;      
+    pdu->canId = CanID;
+
+	/* 数据报文一共8个字节(每次读取2个字节) */
+    *temprxbuffer = IF2DTA1(phyController);        /*save data from buffer to RAM*/  /*DATA 0~1*/
+    *(temprxbuffer+1) = IF2DTA2(phyController);    /*save data from buffer to RAM*/  /*DATA 2~3*/
+    *(temprxbuffer+2) = IF2DTB1(phyController);    /*save data from buffer to RAM*/  /*DATA 4~5*/
+    *(temprxbuffer+3) = IF2DTB2(phyController);    /*save data from buffer to RAM*/  /*DATA 6~7*/
+    /* 填充PDU的数据部分 */
+    for(i=0;i<4;i++)
+    {
+       (pdu->frame)[i*2] = (bl_u8_t)((temprxbuffer[i]) & 0x00FF);
+       (pdu->frame)[i*2+1] = (bl_u8_t)((temprxbuffer[i])>>8);
+    }
+    /* Status Register: clear the flag(successfully receive) */
+    STATR(phyController) &= (~(STATR_RXOK));        
 }
-
 
 /* BEGIN_FUNCTION_HDR
 ***********************************************************************************************
@@ -557,7 +683,17 @@ void Can_DisableControllerInterrupts(
                                      bl_u8_t Controller 
                                     ) 
 {
-
+   bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+   if(0 == (CanControllerInterruptCount[CAN_CONTROLLER_ID]))
+   {
+      CanControllerOldInterruptReg[CAN_CONTROLLER_ID].oldCanCTRLR = (CTRLR(phyController)&CTRLR_INTERUPT);
+      CTRLR(phyController) &= ~(CTRLR_IE | CTRLR_SIE| CTRLR_EIE); 
+   }
+   (CanControllerInterruptCount[CAN_CONTROLLER_ID])++; 
+   if(CanControllerInterruptCount[CAN_CONTROLLER_ID]>250)
+   {
+      CanControllerInterruptCount[CAN_CONTROLLER_ID] = 250;
+   }
 }
 
 /* BEGIN_FUNCTION_HDR
@@ -581,7 +717,78 @@ void Can_EnableControllerInterrupts(
                                      bl_u8_t Controller 
                                     ) 
 {
+    bl_u8_t  phyController = CanControllerIDtoPhys[CAN_CONTROLLER_ID];
+    if(CanControllerInterruptCount[CAN_CONTROLLER_ID]>0)
+    {
+       (CanControllerInterruptCount[CAN_CONTROLLER_ID])--;
+    }
+    if(0 == (CanControllerInterruptCount[CAN_CONTROLLER_ID]))
+    {
+       CTRLR(phyController) = CanControllerOldInterruptReg[CAN_CONTROLLER_ID].oldCanCTRLR; 
+    }
+}
 
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
+ 
+Service name:       Can_DisableGlobalInterupt   
+Syntax:             void Can_DisableGlobalInterupt(
+                                                    void
+                                                    )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function disables all maskable interrupts 
+***********************************************************************************************
+ END_FUNCTION_HDR*/
+void Can_DisableGlobalInterupt(
+                                void
+                               ) 
+{
+   if(0 == CanGlobalInterruptCount)
+   {    
+     //__DI();       
+   } 
+   CanGlobalInterruptCount++; 
+   if(CanGlobalInterruptCount>250)
+   {
+      CanGlobalInterruptCount = 250;
+   } 
+}
+
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
+ 
+Service name:       Can_EnableGlobalInterupt   
+Syntax:             void Can_EnableGlobalInterupt(
+                                                   void
+                                                  )
+Service ID[hex]:       
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant 
+Parameters (in):    None  
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       None  
+Description:        This function enables all maskable interrupts 
+***********************************************************************************************
+ END_FUNCTION_HDR*/
+void Can_EnableGlobalInterupt(
+                               void
+                              ) 
+{
+  if(CanGlobalInterruptCount>0)
+  {
+      CanGlobalInterruptCount--;
+  }
+  if(0 == CanGlobalInterruptCount)
+  {
+    //__EI(); 
+  }
 }
 
 
@@ -639,7 +846,7 @@ Can_ReturnType Can_SetControllerMode(
                       
                    }
 
-				   #if 0
+                  
                    CTRLR(phyController) &= ~(CTRLR_INIT);
                    /* Wait */
                    do
@@ -652,7 +859,8 @@ Can_ReturnType Can_SetControllerMode(
                       #if (CAN_DEV_ERROR_DETECT == STD_ON )
                           Can_State[Controller] = CAN_STARTED;   
                       #endif       
-				   #endif
+                 
+                  
              #if (CAN_DEV_ERROR_DETECT == STD_ON )
                  }
              #endif
@@ -728,6 +936,142 @@ static void CAN_Controller_Busoff_handler(
 {
  
 }
+/**********************************************************************************************
+*  Services affecting a Hardware Handle 
+***********************************************************************************************/
+
+/* BEGIN_FUNCTION_HDR
+***********************************************************************************************
+CAN233: 
+Service name:       Can_Write     
+Syntax:             Can_ReturnType Can_Write( 
+                        const bl_CanTxPdu_t* PduInfo 
+                        )
+Service ID[hex]:    0x06   
+Sync/Async:         Synchronous   
+Reentrancy:         Reentrant (thread-safe) 
+Parameters (in):    Hth:  information which HW-transmit handle shall be used for transmit. 
+                          Implicitly this is also the information about the Controller to use 
+                          because the Hth numbers are unique inside one hardware unit.  
+                    PduInfo:  Pointer to SDU user memory, DLC and Identifier.                      
+Parameters (inout): None 
+Parameters (out):   None  
+Return value:       Can_ReturnType  CAN_OK: Write command has been accepted 
+                                    CAN_NOT_OK: development error occurred 
+                                    CAN_BUSY: No TX hardware buffer available or pre-emptive call 
+                                              of Can_Write that can't be implemented re-entrant 
+Description:        -- 
+***********************************************************************************************
+ END_FUNCTION_HDR*/
+bl_Return_t Can_Write(const bl_CanTxPdu_t *pdu)
+{
+      bl_Return_t ret = BL_ERR_OK;
+      bl_u8_t hthmatchflag = CAN_NOT_MATCH;
+      bl_u8_t Dlc = pdu->dlc;
+      Can_HwHandleType Hth = 2;
+      Can_HwHandleType MBNum = 0;   
+      bl_ComIfHandle_t Controller = 0;
+      CanTxMsg TxMessage;
+	  
+      bl_u8_t phyController = CanControllerIDtoPhys[Controller];
+      bl_u8_t SduNum = 0;
+      
+      MBNum = Can_HthToMBNum(Hth);
+      if((TRUE == EmptyFlagForHth[Hth]))
+      {
+         hthmatchflag = CAN_MATCH;
+      }
+      if(CAN_MATCH==hthmatchflag)/*Hth is empty*/
+      {     
+         #if (STD_ON ==CAN_HW_TRANSMIT_CANCELLATION)
+             CanIDForHth[Hth]=pdu->canId;
+         #endif
+
+		 #if (CAN_ID_TYPE_SUPPORT == STANDARD_ID_ONLY)
+		 TxMessage.StdId=pdu->canId;
+		 TxMessage.IDE = 0;			 // 使用标准标识符
+		 #elif (CAN_ID_TYPE_SUPPORT == EXTERNED_ID_ONLY)
+		 TxMessage.ExtId=pdu->canId;
+		 TxMessage.IDE = 1;			 // 使用扩展标识符
+		 #endif
+
+		 TxMessage.RTR=0;		     // 消息类型为数据帧
+		 
+         if(Dlc>8)
+         {
+             Dlc = 8;
+         }
+         TxMessage.DLC=len;
+
+         /*Data*/
+         for(SduNum=0; SduNum<Dlc; SduNum++)
+         {
+             TxMessage.Data[SduNum] = *(pdu->frame+SduNum);
+         }
+
+		 CAN_Transmit(CAN1, &TxMessage);
+         EmptyFlagForHth[Hth] = FALSE;   
+      }
+      else/*Hth is full*/
+      {
+         ret = BL_ERR_NOT_OK;        
+      }
+      return ret;    
+}
+
+
+#if (RTE_FUN_SYSTEM_SLEEP == BL_FUN_ON)
+/******************************************************************************
+ *
+ *  \details Set all can controller into sleep mode.
+ *
+ *  \return None.
+ *
+ *  \note   This interface is not set the WUPE in the CTL0 register.
+ *
+ *  \since V2.0.0
+ *
+ *****************************************************************************/
+void Can_Sleep(void)
+{
+ 
+    return ;
+}
+
+/******************************************************************************
+ *
+ *  \details The interrupt service function is used to can wakeup interrupt.
+ *
+ *  \return None.
+ *
+ *  \since V2.0.0
+ *
+ *****************************************************************************/
+#if CAN_SCE_INT_ENABLE
+void CAN1_SCE_IRQHandler(void)		  //The error and status change interrupt
+{
+
+}
+#endif
+
+#endif
+
+#if (CANIF_FUN_DYNAMIC_CANID == BL_FUN_ON)
+/******************************************************************************
+ *
+ *  \details Set the can id.
+ *
+ *  \return None.
+ *
+ *  \since V2.0.0
+ *
+ *****************************************************************************/
+static void Can_SetCanId(bl_u32_t id)
+{
+    /* need to be done */
+}
+#endif
+
 
 
 /* CAN 中断服务函数

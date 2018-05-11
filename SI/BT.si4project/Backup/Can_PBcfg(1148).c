@@ -29,7 +29,7 @@
 //Fpclk1的时钟在初始化的时候设置为36M,如果设置tsjw=1,tbs1=8,tbs2=3,brp=5;
 //则波特率为:36M/((1+8+3)*5)=500Kbps, 采样点为:75%
 
-const uint8  CanControllerIDtoPhys[CAN_USED_CONTROLLER_NUM]=
+const CAN_FAR  bl_u8_t  CanControllerIDtoPhys[CAN_USED_CONTROLLER_NUM]=
 
 {
    #if (CAN_USED_CONTROLLER_NUM >= 1)
@@ -39,13 +39,31 @@ const uint8  CanControllerIDtoPhys[CAN_USED_CONTROLLER_NUM]=
   #endif
 };
 
+const CAN_FAR Can_RegInitType  CanRegInit[CAN_USED_CONTROLLER_NUM]=
+{
+
+   #if (CAN_USED_CONTROLLER_NUM >= 1)
+   {
+      CAN0_CTRLR_INIT_VALUE,
+      CAN0_IF1CMSK_TX_VALUE,
+      CAN0_IF1MCTR_TX_VALUE_PIX,
+      CAN0_IF2CMSK_INIT_VALUE,
+      CAN0_IF2MCTR_INIT_VALUE,
+           
+      0xFFFC0000U,      
+      0x80080000U,       
+      CAN0_BTR_VALUE,                 
+      CAN0_BRPER_VALUE,         
+   },
+   #endif
+} ;
 
 /*
 一共3个HOH(Hardware Object Handle)
 2个HRH(Hardware Receive Handle)
 1个HTH(Hardware Transmit Handle)
 */
-const Can_HardwareObjectConfigType   CanHardwareObjectConfig[CAN_USED_HOH_NUM]=
+const CAN_FAR Can_HardwareObjectConfigType   CanHardwareObjectConfig[CAN_USED_HOH_NUM]=
 {
     /* Rx */
     /*0*/
@@ -79,28 +97,28 @@ const Can_HardwareObjectConfigType   CanHardwareObjectConfig[CAN_USED_HOH_NUM]=
    HRH: 序号范围 1~2, 共2个
    HTH: 序号范围 3-6, 共1个
 */
-const Can_HwHandleType CanRxMBStartNum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
+const CAN_FAR Can_HwHandleType CanRxMBStartNum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
    1
 };
 
-const Can_HwHandleType CanRxMBSum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
+const CAN_FAR Can_HwHandleType CanRxMBSum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
    2
 };
 
-const Can_HwHandleType CanTxMBStartNum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
+const CAN_FAR Can_HwHandleType CanTxMBStartNum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
    3
 };
 
-const Can_HwHandleType CanTxMBSum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
+const CAN_FAR Can_HwHandleType CanTxMBSum[CAN_USED_CONTROLLER_NUM]=/*CAN_USED_CONTROLLER_NUM*/
 {
    1
 };
 
 /* HOH 分别对应的 HRH和HTH 的消息缓存序号 */
-const Can_HwHandleType CanHohStartNum[2*CAN_USED_CONTROLLER_NUM]=/*2*CAN_USED_CONTROLLER_NUM*/
+const CAN_FAR  Can_HwHandleType CanHohStartNum[2*CAN_USED_CONTROLLER_NUM]=/*2*CAN_USED_CONTROLLER_NUM*/
 {
    0, /* HRH */
    2  /* HTH */

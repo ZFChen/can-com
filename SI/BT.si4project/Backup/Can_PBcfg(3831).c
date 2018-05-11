@@ -39,6 +39,24 @@ const uint8  CanControllerIDtoPhys[CAN_USED_CONTROLLER_NUM]=
   #endif
 };
 
+const Can_RegInitType  CanRegInit[CAN_USED_CONTROLLER_NUM]=
+{
+
+   #if (CAN_USED_CONTROLLER_NUM >= 1)
+   {
+      CAN0_CTRLR_INIT_VALUE,
+      CAN0_IF1CMSK_TX_VALUE,
+      CAN0_IF1MCTR_TX_VALUE_PIX,
+      CAN0_IF2CMSK_INIT_VALUE,
+      CAN0_IF2MCTR_INIT_VALUE,
+           
+      0xFFFC0000U,      
+      0x80080000U,       
+      CAN0_BTR_VALUE,                 
+      CAN0_BRPER_VALUE,         
+   },
+   #endif
+} ;
 
 /*
 一共3个HOH(Hardware Object Handle)
